@@ -1,14 +1,5 @@
 function A = read_stl_file ()
-%mulai function
-%namaFile='datar.stl';
-%==========================================================================
-%Program pengembangan CAM Rapid Prototyping 
-%Judul "Laser Trajectory for Sculptured and Prismatic Part"
-%Oleh Ahmad Kholil NPM. 0606002843
-%Program Pasca Sarjana Teknik Mnufactur
-%Departemen Teknik Mesin Universitas Indonesia
 
-%pilihan = get(parts,'string');
 filename = 'parts/0_0075stlasc.stl';
 disp(filename);
 fileExist = exist(filename);
