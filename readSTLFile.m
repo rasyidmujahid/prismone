@@ -177,3 +177,6 @@ hold on;
 
 % plot normal vector along with triangle surface
 quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
+
+% proceed to bucketing
+% then slicing
