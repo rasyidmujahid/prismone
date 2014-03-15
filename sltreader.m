@@ -1,4 +1,4 @@
-function A = read_stl_file ()
+function A = parsestl ()
 
 filename = 'parts/0_001stl_ugpart2asc.stl';
 disp(filename);
