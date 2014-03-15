@@ -1,6 +1,6 @@
 function A = read_stl_file ()
 
-filename = 'parts/0_0075stlasc.stl';
+filename = 'parts/0_001stl_ugpart2asc.stl';
 disp(filename);
 fileExist = exist(filename);
 if fileExist == 0,
@@ -106,6 +106,8 @@ while (1)
      end
 end
 
+fclose(file);
+
 % xMnMx(1) = xMnMx(1) - deltaX;
 % xMnMx(2) = xMnMx(2) - deltaX;
 % yMnMx(1) = yMnMx(1) - deltaY;
@@ -139,6 +141,19 @@ for ii = 1:j,
     %disp([ii V(ii,1) V(ii,2) V(ii,3)]);
 end
 
+% find center of triangles
+% loop over triangles, foreach triangle T
+% foreach their vertices v
+% calculate their avarages point
+for i = 1:size(T,1)
+    vid1 = T(i,1);  % first vertex ID
+    vid2 = T(i,2);
+    vid3 = T(i,3);
+    centerX = ( V(vid1,1) + V(vid2,1) + V(vid3,1) ) / 3;
+    centerY = ( V(vid1,2) + V(vid2,2) + V(vid3,2) ) / 3;
+    centerZ = ( V(vid1,3) + V(vid2,3) + V(vid3,3) ) / 3;
+    tricenter(i,:) = [centerX centerY centerZ];
+end
 
 X = V(:, 1);
 Y = V(:, 2);
@@ -156,4 +171,9 @@ xlabel ( '--X axis--' )
 ylabel ( '--Y axis--' )
 zlabel ( '--Z axis--' )
 
-fclose(file);
+hold on;
+
+% surfnorm( T(:,4), T(:,5), T(:,6) );
+
+% plot normal vector along with triangle surface
+quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
