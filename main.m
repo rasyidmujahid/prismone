@@ -1,6 +1,20 @@
 %% Main
+folder = 'parts';
+filename = '0_0075stlasc';
 
-[T, V] = stlreader('parts/0_0075stlasc.stl');
+stlpath = strcat(folder, '/', filename, '.stl');
+triangles_csv = strcat(folder, '/', filename, '_t.csv');
+vertices_csv = strcat(folder, '/', filename, '_v.csv');
+
+if exist(triangles_csv) && exist(vertices_csv)
+	disp(['Read from file...', triangles_csv, ' and ', vertices_csv, '.']);
+	T = csvread(triangles_csv);
+	V = csvread(vertices_csv);
+else
+	[T, V] = stlreader(stlpath);
+	csvwrite(triangles_csv, T);
+	csvwrite(vertices_csv, V);
+end
 
 %% find center of triangles
 %% loop over triangles, foreach triangle T
