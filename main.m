@@ -1,6 +1,6 @@
 %% Main
 
-[T, V] = stlreader('parts/0_001stl_ugpart2asc.stl');
+[T, V] = stlreader('parts/0_0075stlasc.stl');
 
 %% find center of triangles
 %% loop over triangles, foreach triangle T
@@ -39,4 +39,4 @@ hold on;
 
 ccp = ccpoint(T(:,1:3), V, 2);
 
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'o');
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'x');

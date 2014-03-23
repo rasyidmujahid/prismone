@@ -8,6 +8,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
     maxmin_y = max_min(:,2);
 
     lines_y = maxmin_y(2):stepover:maxmin_y(1);
+    disp(['all ys ', num2str(lines_y)]);
 
     ccpoints = [];
     
@@ -18,6 +19,9 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
 
         %# from the indices, get the triangle vertices
         tri_vertices = vertices(tri_vertex_ids,:);
+        disp(['triangle vertices 1: ', num2str(tri_vertices(1,:))]);
+        disp(['triangle vertices 2: ', num2str(tri_vertices(2,:))]);
+        disp(['triangle vertices 3: ', num2str(tri_vertices(3,:))]);
 
         %# from the triangle vertices, find all y cut across the edges of triangle
         cutting_y = [];
@@ -29,6 +33,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
                 cutting_y = [cutting_y; y];
             end 
         end
+        disp(['cutting_y ', num2str(cutting_y')]);
     
         %# now start finding the intersections of this triangle with ys
         ccp = intersect_triangle_with_lines(tri_vertices, cutting_y);
@@ -45,6 +50,7 @@ function output = maxmin(vertices)
     %% min_x min_y min_z]
     output(1,:) = [max(vertices(:,1)) max(vertices(:,2)) max(vertices(:,3))];
     output(2,:) = [min(vertices(:,1)) min(vertices(:,2)) min(vertices(:,3))];
+    disp(['max ', num2str(output(1,:)), ' min ', num2str(output(2,:))]);
 end
 
 %% is_in_between: check if y is in between two points
@@ -97,10 +103,10 @@ function output = intersect_line_with_y(point_1, point_2, y)
     
         %% (x - x1)/(x2 - x1) = (y - y1)/(y2 - y1) = (z - z1)/(z2 - z1)
         %% x = (y - y1)/(y2 - y1) * (x2 - x1) + x1
-        %% z = (y - y1)/(y2 - y1) * (z2 - z1) + y1
+        %% z = (y - y1)/(y2 - y1) * (z2 - z1) + z1
 
         x = (y - point_1(2)) / (point_2(2) - point_1(2)) * (point_2(1) - point_1(1)) + point_1(1);
-        z = (y - point_1(2)) / (point_2(2) - point_1(2)) * (point_2(3) - point_1(3)) + point_1(2);
+        z = (y - point_1(2)) / (point_2(2) - point_1(2)) * (point_2(3) - point_1(3)) + point_1(3);
     
         output = [x y z];
     else
