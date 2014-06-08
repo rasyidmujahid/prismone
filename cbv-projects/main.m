@@ -1,6 +1,6 @@
 %% Main
-folder = '../parts';
-filename = 'Braket';
+folder = 'D:\Mas Wawan\cbv\cobabentuk';
+filename = 'bentuk A';
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -51,6 +51,6 @@ hold on;
 %% plot normal vector along with triangle surface
 %quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
-ccp = ccpoint(T(:,1:3), V, 1);
+ccp = ccpoint(T(:,1:3), V, 10);
 
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'x');
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 15);
