@@ -1,4 +1,6 @@
-%% Main
+%% ================================================
+%% Read STL file
+%% ================================================
 folder = 'D:\Mas Wawan\cbv\cobabentuk';
 filename = 'bentuk A';
 
@@ -16,6 +18,10 @@ else
 	csvwrite(vertices_csv, V);
 end
 
+%% ================================================
+%% If need to plot normal vector on each triangle
+%% ================================================
+
 %% find center of triangles
 %% loop over triangles, foreach triangle T
 %% foreach their vertices v
@@ -30,27 +36,40 @@ for i = 1:size(T,1)
     tricenter(i,:) = [centerX centerY centerZ];
 end
 
+%% ================================================
+%% Generate cutter contact points
+%% ================================================
+
+[intersection, points_cloud] = ccpoint(T(:,1:3), V, T(:,4:5), 10);
+ccp = cell2mat(intersection(:,1));
+
+%% ================================================
+%% Create map matrix
+%% ================================================
+
+cbv_map = map_matrix(intersection, points_cloud);
+disp(cbv_map);
+
+%% ================================================
+%% Plot points
+%% ================================================
+
 X = V(:, 1);
 Y = V(:, 2);
 Z = V(:, 3);
 
-% plotparts = plot3(X, Y, Z, '.', 'LineWidth', 2);
-% set('plotparts');
-% grid on;
-
-h3 = trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Interp' );
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Interp' );
   
 axis equal;
 
-xlabel ( '--X axis--' )
-ylabel ( '--Y axis--' )
-zlabel ( '--Z axis--' )
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
 
 hold on;
 
 %% plot normal vector along with triangle surface
-%quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
+% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
-ccp = ccpoint(T(:,1:3), V, 10);
-
+%% plot cc points
 plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 15);
