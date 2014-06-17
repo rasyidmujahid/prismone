@@ -108,18 +108,7 @@ function output = points_cloud(max_min, density)
     min_x = max_min(2,1);
     max_x = max_min(1,1);
 
-    Y = [min_y:density:max_y max_y];
-    X = [min_x:density:max_x max_x];
-    
-    output = zeros(length(Y), length(X), 3);
-    
-    for iy = 1:length(Y)
-        for ix = 1:length(X)
-            output(iy, ix, 1) = X(ix);
-            output(iy, ix, 2) = Y(iy);
-            output(iy, ix, 3) = 0;
-        end
-    end
+    [output(:,:,1), output(:,:,2), output(:,:,3)] = meshgrid(min_x:density:max_x, min_x:density:max_y, 0);
 end
 
 function output = maxmin(vertices)
