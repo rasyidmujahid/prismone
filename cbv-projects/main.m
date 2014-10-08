@@ -1,8 +1,9 @@
 %% ================================================
 %% Read STL file
 %% ================================================
-folder = 'D:\Mas Wawan\cbv\cobabentuk';
-filename = 'bentuk A';
+
+folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
+filename = 'bentuk B';
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -37,18 +38,39 @@ for i = 1:size(T,1)
 end
 
 %% ================================================
-%% Generate cutter contact points
+%% Roughing parameters
 %% ================================================
 
-[intersection, points_cloud] = ccpoint(T(:,1:3), V, T(:,4:5), 10);
-ccp = cell2mat(intersection(:,1));
+density = 10; % density determines how wide points cloud
+              % will be, horizontal stepover is also
+              % following this density.
+horizontal_stepover = density;
+vertical_stepover   = 5;
+max_min = maxmin(V);
+
+%% ================================================
+%% Generate cutter contact points
+%% ================================================
+[intersection_points, points_cloud] = ccpoint(T(:,1:3), V, T(:,4:5), ...
+    max_min, horizontal_stepover);
+ccp = cell2mat(intersection_points(:,1));
 
 %% ================================================
 %% Create map matrix
 %% ================================================
 
-cbv_map = map_matrix(intersection, points_cloud);
-disp(cbv_map);
+cbv_map = map_matrix(intersection_points, points_cloud);
+
+%% ================================================
+%% Create horizontal intersection.
+%% The direction goes from left to right, top to bottom.
+%% Horizontal stepover value is following the density value.
+%% This is actually just like ccpoint generation for roughing,
+%% but it is connecting the already generated points cloud.
+%% ================================================
+layering(max_min, points_cloud, intersection_points, ...
+    vertical_stepover, horizontal_stepover);
+
 
 %% ================================================
 %% Plot points
@@ -59,7 +81,7 @@ Y = V(:, 2);
 Z = V(:, 3);
 
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Interp' );
-  
+
 axis equal;
 
 xlabel ( '--X axis--' );
@@ -72,4 +94,7 @@ hold on;
 % quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
 %% plot cc points
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 15);
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'b.', 'MarkerSize', 15);
+
+%% plot points cloud
+plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'MarkerSize', 15)
