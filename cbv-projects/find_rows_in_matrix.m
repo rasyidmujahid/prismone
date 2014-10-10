@@ -1,5 +1,5 @@
 %% cellfind: find row item in a matrix
-function found_idx = find_row_in_matrix(item, matrix)
+function found_idx = find_rows_in_matrix(item, matrix)
     found_idx = [];
     [flag, idx] = ismember(item, matrix, 'rows');
     %% since ismember only return the latest, loop back to the beginning

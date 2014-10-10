@@ -51,7 +51,7 @@ max_min = maxmin(V);
 %% ================================================
 %% Generate cutter contact points
 %% ================================================
-[intersection_points, points_cloud] = ccpoint(T(:,1:3), V, T(:,4:5), ...
+[intersection_points, points_cloud] = ccpoint(T(:,1:3), V, T(:,4:6), ...
     max_min, horizontal_stepover);
 ccp = cell2mat(intersection_points(:,1));
 
@@ -68,8 +68,8 @@ cbv_map = map_matrix(intersection_points, points_cloud);
 %% This is actually just like ccpoint generation for roughing,
 %% but it is connecting the already generated points cloud.
 %% ================================================
-layering(max_min, points_cloud, intersection_points, ...
-    vertical_stepover, horizontal_stepover);
+roughing_points = layering(max_min, points_cloud, intersection_points, ...
+    vertical_stepover, horizontal_stepover)
 
 
 %% ================================================
@@ -80,7 +80,8 @@ X = V(:, 1);
 Y = V(:, 2);
 Z = V(:, 3);
 
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Interp' );
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'white' );
+% trisurf ( T(:,1:3), X, Y, Z );
 
 axis equal;
 
@@ -98,3 +99,6 @@ plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'b.', 'MarkerSize', 15);
 
 %% plot points cloud
 plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'MarkerSize', 15)
+
+%% plot roughing_points
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 15);
