@@ -40,8 +40,9 @@ end
 %% returns                  points_cloud_at_z outside intersection_points
 function outputs = find_roughing_points(points_cloud_at_z, intersection_points)
     outputs = [];
-    for i = 1:size(points_cloud_at_z(:,:,1))
-        for j = 1:size(points_cloud_at_z(:,:,2))
+    dimension = size(points_cloud_at_z);
+    for i = 1:dimension(1)
+        for j = 1:dimension(2)
             point = [points_cloud_at_z(i,j,1) points_cloud_at_z(i,j,2) points_cloud_at_z(i,j,3)];
             if is_outside_part(point, intersection_points)
                 outputs = [outputs; point];
@@ -67,7 +68,7 @@ function outside = is_outside_part(point, part_boundary_points)
     if mod(boundary_length,2) == 0
         % only take into action if boundary is a pair
         for m = 1:2:boundary_length
-            outside = outside && ( boundary_at_this_slicing_line(m,3) < point(1,3) && point(1,3) < boundary_at_this_slicing_line(m+1,3) );
+            outside = outside && ~( boundary_at_this_slicing_line(m,3) <= point(1,3) && point(1,3) <= boundary_at_this_slicing_line(m+1,3) );
         end
     else
         outside = false;

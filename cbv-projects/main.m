@@ -95,10 +95,10 @@ hold on;
 % quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
 %% plot cc points
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'b.', 'MarkerSize', 15);
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'b.', 'MarkerSize', 10);
 
 %% plot points cloud
-plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'MarkerSize', 15)
+plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'MarkerSize', 10)
 
 %% plot roughing_points
-plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 15);
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 7);
