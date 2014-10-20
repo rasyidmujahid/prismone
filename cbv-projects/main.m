@@ -41,11 +41,11 @@ end
 %% Roughing parameters
 %% ================================================
 
-density = 10; % density determines how wide points cloud
+density = 20; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 5;
+vertical_stepover   = 10;
 max_min = maxmin(V);
 
 %% ================================================
@@ -71,6 +71,11 @@ cbv_map = map_matrix(intersection_points, points_cloud);
 roughing_points = layering(max_min, points_cloud, intersection_points, ...
     vertical_stepover, horizontal_stepover)
 
+%% ================================================
+%% Build ccpoint orientation
+%% ================================================
+
+% orientation(roughing_points, intersection_points);
 
 %% ================================================
 %% Plot points
