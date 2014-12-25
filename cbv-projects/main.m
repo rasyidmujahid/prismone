@@ -69,13 +69,13 @@ cbv_map = map_matrix(intersection_points, points_cloud);
 %% but it is connecting the already generated points cloud.
 %% ================================================
 roughing_points = layering(max_min, points_cloud, intersection_points, ...
-    vertical_stepover, horizontal_stepover)
+    vertical_stepover, horizontal_stepover);
 
 %% ================================================
 %% Build ccpoint orientation
 %% ================================================
 
-% orientation(roughing_points, intersection_points);
+roughing_points = orientation(roughing_points, intersection_points);
 
 %% ================================================
 %% Plot points
@@ -107,3 +107,6 @@ plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'Mark
 
 %% plot roughing_points
 plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 7);
+
+quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
+    roughing_points(:,4), roughing_points(:,5), roughing_points(:,6) );

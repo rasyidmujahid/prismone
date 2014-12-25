@@ -3,7 +3,7 @@
 %%					@boundary_points intersection points of vertical slicing lines and 
 %%					model that formed a boundar points 
 %% returns:			each point in @points + orientation vector
-function outputs = orientation(points, boundary_points, triangles, vertices)
+function points_with_orientation = orientation(points, boundary_points, triangles, vertices)
 
 	%% algorithm:
 	%% 1. loop over ccpoints under CBV
@@ -20,33 +20,22 @@ function outputs = orientation(points, boundary_points, triangles, vertices)
 	%% 4. check for gouging, if it is, take lower z-upper
 	%% 5. done
 
-	outputs = [];
+	points_with_orientation = [points zeros(size(points))];
 
 	for i = 1:size(points,1)
 		point = points(i,:);
-		if is_under_cbv(point, boundary_points))
+		if is_under_cbv(point, boundary_points)
 			ccp_outside_cbv = find_closest_ccp_outside_cbv(point, points, boundary_points);
-			orientation = skewed_orientation(point, ccp_outside_cbv);
-			
+			to_point 		= [ccp_outside_cbv(1) ccp_outside_cbv(2) max(points(:,3))];
+			orientation 	= skewed_orientation(point, to_point);
 		else
-			orientation = [point(1) point(2) point(3)+5];
-		end
-		outputs = [outputs; [point  orientation]];
-	end
+			orientation = [0 0 100];
+        end
+        points_with_orientation(i, 4:6) = orientation;
+    end
 end
 
-%% skewed_orientation: 	build a vector from this point towards another point outside cbv 
-%%						closest to this point
-%% arguments:			@point point that want to find its vector
-%%						@boundary_points intersection points
-%% returns: 			orientation vector thru ccp outside cbv
-function orientation_vector = skewed_orientation(point, boundary_points)
-	
-	orientation_vector = [];
-end
-
-%% turning_point_before_cbv: find slicing line right before enter cbv
-function output = turning_points_before_cbv(boundary_points)
-
-	output = [];
+%% skewed_orientation: build orientation vector from @from point towards @to
+function orientation = skewed_orientation(from, to)
+	orientation = [to(1)-from(1) to(2)-from(2) to(3)-from(3)];
 end
