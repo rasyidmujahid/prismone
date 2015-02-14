@@ -2,8 +2,8 @@
 %% Read STL file
 %% ================================================
 
-folder = 'D:\Glash\parts';
-filename = '0_0075stlasc';
+folder = 'C:\Project\Glash\parts';
+filename = '0_005stlasc';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -20,24 +20,6 @@ else
 end
 
 %% ================================================
-%% If need to plot normal vector on each triangle
-%% ================================================
-
-%% find center of triangles
-%% loop over triangles, foreach triangle T
-%% foreach their vertices v
-%% calculate their avarages point
-for i = 1:size(T,1)
-    vid1 = T(i,1);  % first vertex ID
-    vid2 = T(i,2);
-    vid3 = T(i,3);
-    centerX = ( V(vid1,1) + V(vid2,1) + V(vid3,1) ) / 3;
-    centerY = ( V(vid1,2) + V(vid2,2) + V(vid3,2) ) / 3;
-    centerZ = ( V(vid1,3) + V(vid2,3) + V(vid3,3) ) / 3;
-    tricenter(i,:) = [centerX centerY centerZ];
-end
-
-%% ================================================
 %% Generate CC points
 %% ================================================
 
@@ -45,18 +27,14 @@ stepover = 10;
 ccp = ccpoint(T(:,1:3), V, stepover);
 ccp = unique(ccp, 'rows');
 
-%% ================================================
-%% Generate flank line directions
-%% ================================================
 
-% sort by y
-lines_y   = sort( unique(ccp(:,2)) );
-ccp_per_y = java.util.ArrayList;
-for i = 1:size(lines_y, 1)
-    line_y = lines_y(i);
-    ccp_over_this_line = ccp( ccp(:,2) == line_y,: );
-    ccp_per_y.add( sortrows(ccp_over_this_line,1) );
-end
+%% ================================================================
+%% Bucketing, Finding tool-and-part intersection, Gouging avoidance
+%% ================================================================
+
+buckets = bucket.Builder(T(:,1:3), V, 5);
+
+
 
 %% ================================================
 %% Plot points
@@ -92,24 +70,27 @@ hold on;
 %% Visualize cpp & flank line
 %% ================================================
 
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'o');
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'x');
 
-for i = 0:ccp_per_y.size-2
-    ccp_over_this_line  = ccp_per_y.get(i);
-    ccp_after_this_line = ccp_per_y.get(i + 1);
-    
-    size_taken = size(ccp_over_this_line, 1);
-    if size_taken > size(ccp_after_this_line, 1)
-        size_taken = size(ccp_after_this_line, 1);
-    end
-    
-    % line([ccp_over_this_line(1:size_taken,1) ccp_after_this_line(1:size_taken,1)], ...
-    %     [ccp_over_this_line(1:size_taken,2) ccp_after_this_line(1:size_taken,2)], ...
-    %     [ccp_over_this_line(1:size_taken,3) ccp_after_this_line(1:size_taken,3)]);
 
-    for j = 1:size_taken
-        line([ccp_over_this_line(j,1) ccp_after_this_line(j,1)], ...
-            [ccp_over_this_line(j,2) ccp_after_this_line(j,2)], ...
-            [ccp_over_this_line(j,3) ccp_after_this_line(j,3)]);
-    end
-end
+
+%% ================================================
+%% Starting line of tool orientation
+%% ================================================
+% tool_length = 50; % assuming 5cm length
+% for i = 0:ccp_per_y.size-1
+%     ccp_over_this_line = ccp_per_y.get(i);
+
+%     % only show if smaller than tool length
+%     this_y = ccp_over_this_line(1,2);
+%     if this_y > tool_length
+%         break
+%     end
+
+%     for j = 1:size(ccp_over_this_line, 1)
+%         line([ccp_over_this_line(j,1) ccp_over_this_line(j,1)], ...
+%             [ccp_over_this_line(j,2) 0], ...
+%             [ccp_over_this_line(j,3) ccp_over_this_line(j,3)], ...
+%             'Color','b','LineWidth',1,'LineStyle','-');
+%     end
+% end
