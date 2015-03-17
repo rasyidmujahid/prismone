@@ -78,6 +78,11 @@ roughing_points = layering(max_min, points_cloud, intersection_points, ...
 roughing_points = orientation(roughing_points, intersection_points);
 
 %% ================================================
+%% Will no longer need orintation, tool to cut in rotation way
+%% ================================================
+
+
+%% ================================================
 %% Plot points
 %% ================================================
 
