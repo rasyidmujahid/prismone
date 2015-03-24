@@ -108,5 +108,39 @@ plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'Mark
 %% plot roughing_points
 plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 7);
 
-quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
-    roughing_points(:,4), roughing_points(:,5), roughing_points(:,6) );
+% quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
+%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6) );
+
+%% draw tool path
+toolpath = [];
+
+z = flipud(unique(roughing_points(:,3)));
+direction = NaN;
+
+for i = 1:size(z)
+    roughing_points_at_z = roughing_points(roughing_points(:,3) == z(i),:);
+
+    if mod(i,2) == 0
+        y = unique(roughing_points_at_z(:,2));
+    else
+        y = flipud(unique(roughing_points_at_z(:,2)));
+    end
+
+    for j = 1:size(y)
+        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,2) == y(j),:);
+
+        if isnan(direction)
+            direction = mod(j,2) == 0;
+        end
+        
+        if direction
+            toolpath = [toolpath; roughing_points_at_y];
+        else
+            toolpath = [toolpath; flipud(roughing_points_at_y)];
+        end
+        
+        direction = ~direction;
+    end
+end
+
+line(toolpath(:,1), toolpath(:,2), toolpath(:,3),'Color','b','LineWidth',2,'LineStyle','-');
