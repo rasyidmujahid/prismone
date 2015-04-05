@@ -9,9 +9,11 @@ classdef Bucket < handle
     end
 
     methods
-        function b = Bucket(x, y)
-            b.x = x;
-            b.y = y;
+        function b = Bucket(x,y)
+            if nargin > 0
+                b.x = x;
+                b.y = y;
+            end
         end
 
         function add(bucket, triangle)

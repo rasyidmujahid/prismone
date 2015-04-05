@@ -3,7 +3,7 @@
 %% ================================================
 
 folder = 'C:\Project\Glash\parts';
-filename = '0_005stlasc';
+filename = '0_0075stlasc';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -32,8 +32,8 @@ ccp = unique(ccp, 'rows');
 %% Bucketing, Finding tool-and-part intersection, Gouging avoidance
 %% ================================================================
 
-buckets = bucket.Builder(T(:,1:3), V, 5);
-
+b = bucket.Builder(T(:,1:3), V, 10);
+tri_buckets = b.buckets;
 
 
 %% ================================================
@@ -70,27 +70,26 @@ hold on;
 %% Visualize cpp & flank line
 %% ================================================
 
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'x');
+% plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'x');
 
+colors = ['r';'g';'b';'c';'m';'y';'w';'k'];
 
+%% buckets label
+for i = 1:size(tri_buckets,1)
+    for j = 1:size(tri_buckets,2)
+        selected_bucket = tri_buckets(i,j).bag;
+        for n = 1:3:size(selected_bucket.triangles)
+            tri1 = selected_bucket.triangles(n,:);
+            tri2 = selected_bucket.triangles(n+1,:);
+            tri3 = selected_bucket.triangles(n+2,:);
+            
+            label = selected_bucket.x + selected_bucket.y;
+            c = colors(mod(label, size(colors,1)) + 1);
 
-%% ================================================
-%% Starting line of tool orientation
-%% ================================================
-% tool_length = 50; % assuming 5cm length
-% for i = 0:ccp_per_y.size-1
-%     ccp_over_this_line = ccp_per_y.get(i);
-
-%     % only show if smaller than tool length
-%     this_y = ccp_over_this_line(1,2);
-%     if this_y > tool_length
-%         break
-%     end
-
-%     for j = 1:size(ccp_over_this_line, 1)
-%         line([ccp_over_this_line(j,1) ccp_over_this_line(j,1)], ...
-%             [ccp_over_this_line(j,2) 0], ...
-%             [ccp_over_this_line(j,3) ccp_over_this_line(j,3)], ...
-%             'Color','b','LineWidth',1,'LineStyle','-');
-%     end
-% end
+            patch([tri1(1,1); tri2(1,1); tri3(1,1)], ...
+                [tri1(1,2); tri2(1,2); tri3(1,2)], ...
+                [tri1(1,3); tri2(1,3); tri3(1,3)], c);
+        end
+        
+    end
+end
