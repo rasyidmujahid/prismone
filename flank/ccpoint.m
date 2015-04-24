@@ -8,7 +8,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
     maxmin_y = max_min(:,2);
 
     lines_y = maxmin_y(2):stepover:maxmin_y(1);
-    disp(['all ys ', num2str(lines_y)]);
+    disp(['all y values', num2str(lines_y)]);
 
     ccpoints = [];
     

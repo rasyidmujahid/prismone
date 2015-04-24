@@ -28,9 +28,12 @@ classdef Builder < handle
             width = ceil((minmax(2,2) - minmax(1,2)) / builder.bucket_size);
 
             builder.buckets = bucket.Buckets(zeros(len,width));
+
+            disp(['Created buckets, size ', num2str(len), ' x ', num2str(width)]);
         end
 
         function bucketize(builder)
+            disp('Put triangles into buckets..');
             for i = 1:size(builder.triangles, 1)
                 vertex_indices      = builder.triangles(i,:);
                 triangle_vertices   = builder.vertices(vertex_indices,:);
