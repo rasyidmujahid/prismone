@@ -59,14 +59,25 @@ function outside = is_outside_part(point, part_boundary_points)
     slicing_line = point(:,1:2);
     row_indices = find_rows_in_matrix(slicing_line, cell2mat(part_boundary_points(:,2)));
     boundary_at_this_slicing_line = cell2mat(part_boundary_points(row_indices,:));
+
+    % pick boundary points only, remove redundant
+    % NOT SURE, unique DOES NOT WORK!!!
+    boundary_at_this_slicing_line = unique(boundary_at_this_slicing_line(:,1:3), 'rows');
     
     % sort by z value ascending
     boundary_at_this_slicing_line = sortrows(boundary_at_this_slicing_line, 3);
     
     outside = true;
     boundary_length = size(boundary_at_this_slicing_line,1);
-    if mod(boundary_length,2) == 0
-        % only take into action if boundary is a pair
+
+    % only take into action if boundary is a pair
+    % if odd, take out the last item
+    if mod(boundary_length,2) > 0
+        boundary_at_this_slicing_line = boundary_at_this_slicing_line(1:end-1,:);
+        boundary_length = size(boundary_at_this_slicing_line,1);
+    end
+
+    if ~isempty(boundary_at_this_slicing_line)
         for m = 1:2:boundary_length
             outside = outside && ~( boundary_at_this_slicing_line(m,3) <= point(1,3) && point(1,3) <= boundary_at_this_slicing_line(m+1,3) );
         end

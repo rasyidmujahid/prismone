@@ -41,11 +41,11 @@ end
 %% Roughing parameters
 %% ================================================
 
-density = 20; % density determines how wide points cloud
+density = 10; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 10;
+vertical_stepover   = 5;
 max_min = maxmin(V);
 
 %% ================================================
@@ -59,7 +59,7 @@ ccp = cell2mat(intersection_points(:,1));
 %% Create map matrix
 %% ================================================
 
-cbv_map = map_matrix(intersection_points, points_cloud);
+% cbv_map = map_matrix(intersection_points, points_cloud);
 
 %% ================================================
 %% Create horizontal intersection.
@@ -90,7 +90,7 @@ X = V(:, 1);
 Y = V(:, 2);
 Z = V(:, 3);
 
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'white' );
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 % trisurf ( T(:,1:3), X, Y, Z );
 
 axis equal;
@@ -102,19 +102,32 @@ zlabel ( '--Z axis--' );
 hold on;
 
 %% plot normal vector along with triangle surface
-% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
-
-%% plot cc points
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'b.', 'MarkerSize', 10);
+%%% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
 %% plot points cloud
-plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'rx', 'MarkerSize', 10)
+% plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'm.', 'MarkerSize', 5)
+
+%% draw vertical slice
+% for i = 1:size(points_cloud, 1)
+%     for j = 1:size(points_cloud, 2)
+%         x = points_cloud(i,j,1);
+%         y = points_cloud(i,j,2);
+%         z = points_cloud(i,j,3);
+%         z_max = max_min(1,3);
+%         line([x; x], [y; y], [z; z_max], 'Color','b','LineWidth',1,'LineStyle','-');
+%     end
+% end
+
+%% plot cc points
+% plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
 
 %% plot roughing_points
-plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'r.', 'MarkerSize', 7);
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 5);
 
+%% plot roughing_points orientation
 % quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
-%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6) );
+%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+%     'Color','r','LineWidth',1,'LineStyle','-' );
 
 %% draw tool path
 toolpath = [];
@@ -122,17 +135,19 @@ toolpath = [];
 z = flipud(unique(roughing_points(:,3)));
 direction = NaN;
 
+direction_type = 1;
+
 for i = 1:size(z)
     roughing_points_at_z = roughing_points(roughing_points(:,3) == z(i),:);
 
     if mod(i,2) == 0
-        y = unique(roughing_points_at_z(:,2));
+        y = unique(roughing_points_at_z(:,direction_type));
     else
-        y = flipud(unique(roughing_points_at_z(:,2)));
+        y = flipud(unique(roughing_points_at_z(:,direction_type)));
     end
 
     for j = 1:size(y)
-        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,2) == y(j),:);
+        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
 
         if isnan(direction)
             direction = mod(j,2) == 0;
@@ -148,4 +163,4 @@ for i = 1:size(z)
     end
 end
 
-line(toolpath(:,1), toolpath(:,2), toolpath(:,3),'Color','b','LineWidth',2,'LineStyle','-');
+line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
