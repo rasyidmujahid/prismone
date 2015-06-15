@@ -2,8 +2,8 @@
 %% Read STL file
 %% ================================================
 
-folder = 'Stl4';
-filename = 'setengah-krucut';
+folder = 'C:\Project\Glash\parts';
+filename = '0_005stlasc';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -23,23 +23,24 @@ end
 %% machining parameters
 %% ================================================
 tool_length = 10;
-slice_scale = 50;
+% rail_scale = 50;
+% slice_width = 5;
 
 %% ================================================
 %% Generate CC points
 %% ================================================
+ccpoints_data = ccpoint(T(:,1:3), V, tool_length);
 
-ccp = ccpoint(T(:,1:3), V, tool_length);
-ccp = unique(ccp, 'rows');
+%% build ccpoints normal vector
+ccpoints_data = build_normal(ccpoints_data, V, T)
+
+%% ccpoints
+cc_points = unique(ccpoints_data(:,3:5), 'rows');
 
 %% ================================================
 %% Create cutting area
-%% E.g.
-%% v11 v12
-%% v21 v22
-%% v31 v32
 %% ================================================
-rail_pairs = cutting_area(ccp, slice_scale)
+ccp_pairs = cutting_area(cc_points);
 
 %% ================================================================
 %% Bucketing, Finding tool-and-part intersection, Gouging avoidance
@@ -49,12 +50,6 @@ rail_pairs = cutting_area(ccp, slice_scale)
 % tri_buckets = b.buckets;
 
 
-%% ================================================================
-%% Orthogonal projection
-%% ================================================================
-
-
-
 %% ================================================
 %% Plot points
 %% ================================================
@@ -62,11 +57,6 @@ rail_pairs = cutting_area(ccp, slice_scale)
 X = V(:, 1);
 Y = V(:, 2);
 Z = V(:, 3);
-
-% plotparts = plot3(X, Y, Z, '.', 'LineWidth', 2);
-% set('plotparts');
-% grid on;
-
 
 %% ================================================
 %% Visualize faceted model
@@ -91,7 +81,7 @@ hold on;
 %% Visualize cpp
 %% ================================================
 
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'rx', 'MarkerSize', 5);
+plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 
 %% ================================================
 %% Draw colored buckets
@@ -119,6 +109,11 @@ plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'rx', 'MarkerSize', 5);
 %% ================================================
 %% Draw rails
 %% ================================================
-for i = 1:size(rail_pairs,1)
-    line(rail_pairs(i, [1,4]), rail_pairs(i, [2,5]), rail_pairs(i, [3,6]), 'Color','b','LineWidth',2,'LineStyle','-')
-end
+% for i = 1:size(ccp_pairs,1)
+%     line(ccp_pairs(i, [1,4]), ccp_pairs(i, [2,5]), ccp_pairs(i, [3,6]), 'Color','b','LineWidth',2,'LineStyle','-')
+% end
+
+%% plot normal vector on top of ccpoints
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+    3, 'Color','r','LineWidth',1,'LineStyle','-');

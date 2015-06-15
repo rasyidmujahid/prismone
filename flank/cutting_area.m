@@ -1,45 +1,46 @@
-%% cutting_area: create cutting area formed by squared of 4 vertices
-%% return pairs of rail
-function rail_pairs = cutting_area(ccp, scale)
-	rail_pairs = [];
-	all_y_values = sort(unique(ccp(:,2)));
+%% cutting_area_by_scale: create cutting area formed by squared of 4 ccp.
+%% return pairs of ccp
+function ccp_pairs = cutting_area(cc_points)
+	ccp_pairs = [];
+	all_y_values = sort(unique(cc_points(:,2)));
 
 	for i = 1:size(all_y_values)-1
 		
-		%% rail start
+		% %% rail start
 		y1 = all_y_values(i);
-		rails1 = create_rails(ccp, y1, scale);
 		
-		%% rail end
+		% %% rail end
 		y2 = all_y_values(i+1);
-		rails2 = create_rails(ccp, y2, scale);
 
-		rail_pairs = [rail_pairs; rails1 rails2];
+		ccpoints_1 = cc_points_at_y(cc_points, y1);
+		ccpoints_2 = cc_points_at_y(cc_points, y2);
+
+		pairs = create_pairs(cc_points, ccpoints_1, ccpoints_2);
+
+		ccp_pairs = [ccp_pairs; pairs];
 	end
 end
 
-%% create_rails: create rails
-function rails = create_rails(ccp, y, scale)
-	rails = [];
+%% create_pairs: given two list of ccpoints, return pairs of each two of them
+function pairs = create_pairs(all_ccp, ccpoints_1, ccpoints_2)
 
-	ccp_at_y = ccp(find(ccp(:,2) == y),:);
-	unit = size(ccp_at_y,1) / scale;
+	%% IDX = knnsearch(X,Y) finds the nearest neighbor in X for each point in Y. 
+	%% IDX is a column vector with my rows. Each row in IDX contains the index of 
+	%% nearest neighbor in X for the corresponding row in Y.
+	neighbor_index_in_ccp2 = knnsearch(ccpoints_2, ccpoints_1);
 
-	for i = unit:unit:size(ccp_at_y,1)
-		index = round(i);
-		if index <= 0
-			index = 1;
-		end
-		rails = [rails; ccp_at_y(index,:)];
-	end
+	neighbors_in_ccp2 = ccpoints_2(neighbor_index_in_ccp2, :);
+
+	% [~, loc1] = ismember(ccpoints, ccpoints_1);
+	% [~, loc2] = ismember(ccpoints, neighbors_in_ccp2);
+
+	% %% only save ccp index
+	% pairs = [loc1 loc2];
+
+	pairs = [ccpoints_1 neighbors_in_ccp2];
 end
 
-
-%% distance: calculate surface length given connected points.
-function dist = surface_length(ccp_at_y)
-	dist = 0;
-	for i = 1:size(ccp_at_y,1) - 1
-		dist_unit = pdist([ccp_at_y(i,:); ccp_at_y(i+1,:)]);
-		dist = dist + dist_unit;
-	end
+%% cc_points_at_y: return all ccpoints have y = requested y
+function ccpoints = cc_points_at_y(cc_points, y)
+	ccpoints = cc_points(find(cc_points(:,2) == y),:);
 end
