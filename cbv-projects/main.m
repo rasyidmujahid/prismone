@@ -3,7 +3,7 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-filename = 'bentuk B';
+filename = 'coba13';
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -40,8 +40,7 @@ end
 %% ================================================
 %% Roughing parameters
 %% ================================================
-
-density = 10; % density determines how wide points cloud
+density = 5; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
@@ -75,7 +74,7 @@ roughing_points = layering(max_min, points_cloud, intersection_points, ...
 %% Build ccpoint orientation
 %% ================================================
 
-roughing_points = orientation(roughing_points, intersection_points);
+roughing_points = orientation(roughing_points, intersection_points, vertical_stepover);
 
 %% ================================================
 %% Will no longer need orintation, tool to cut in rotation way
@@ -124,43 +123,43 @@ hold on;
 %% plot roughing_points
 plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 5);
 
-%% plot roughing_points orientation
-% quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
-%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
-%     'Color','r','LineWidth',1,'LineStyle','-' );
+% plot roughing_points orientation
+quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
+    roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+    3, 'Color','r','LineWidth',1,'LineStyle','-' );
 
 %% draw tool path
-toolpath = [];
+% toolpath = [];
 
-z = flipud(unique(roughing_points(:,3)));
-direction = NaN;
+% z = flipud(unique(roughing_points(:,3)));
+% direction = NaN;
 
-direction_type = 1;
+% direction_type = 1;
 
-for i = 1:size(z)
-    roughing_points_at_z = roughing_points(roughing_points(:,3) == z(i),:);
+% for i = 1:size(z)
+%     roughing_points_at_z = roughing_points(roughing_points(:,3) == z(i),:);
 
-    if mod(i,2) == 0
-        y = unique(roughing_points_at_z(:,direction_type));
-    else
-        y = flipud(unique(roughing_points_at_z(:,direction_type)));
-    end
+%     if mod(i,2) == 0
+%         y = unique(roughing_points_at_z(:,direction_type));
+%     else
+%         y = flipud(unique(roughing_points_at_z(:,direction_type)));
+%     end
 
-    for j = 1:size(y)
-        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+%     for j = 1:size(y)
+%         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
 
-        if isnan(direction)
-            direction = mod(j,2) == 0;
-        end
+%         if isnan(direction)
+%             direction = mod(j,2) == 0;
+%         end
         
-        if direction
-            toolpath = [toolpath; roughing_points_at_y];
-        else
-            toolpath = [toolpath; flipud(roughing_points_at_y)];
-        end
+%         if direction
+%             toolpath = [toolpath; roughing_points_at_y];
+%         else
+%             toolpath = [toolpath; flipud(roughing_points_at_y)];
+%         end
         
-        direction = ~direction;
-    end
-end
+%         direction = ~direction;
+%     end
+% end
 
-line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
+% line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');

@@ -3,7 +3,7 @@
 %%					@boundary_points intersection points of vertical slicing lines and 
 %%					model that formed a boundar points 
 %% returns:			each point in @points + orientation vector
-function points_with_orientation = orientation(points, boundary_points, triangles, vertices)
+function points_with_orientation = orientation(points, boundary_points, vertical_stepover)
 
 	%% algorithm:
 	%% 1. loop over ccpoints under CBV
@@ -26,8 +26,16 @@ function points_with_orientation = orientation(points, boundary_points, triangle
 		point = points(i,:);
 		if is_under_cbv(point, boundary_points)
 			ccp_outside_cbv = find_closest_ccp_outside_cbv(point, points, boundary_points);
-			to_point 		= [ccp_outside_cbv(1) ccp_outside_cbv(2) max(points(:,3))];
-			orientation 	= skewed_orientation(point, to_point);
+
+			if ~isempty(ccp_outside_cbv)
+				top_most = max(points(:,3));
+				virtual_tool_length = top_most - ccp_outside_cbv(3);
+				to_point = [ccp_outside_cbv(1) ccp_outside_cbv(2) top_most];
+				[new_point, orientation] = skewed_orientation(point, to_point, virtual_tool_length);
+				points_with_orientation(i, 1:3) = new_point;
+			else
+				orientation = [0 0 0];
+			end
 		else
 			orientation = [0 0 100];
         end
@@ -36,6 +44,8 @@ function points_with_orientation = orientation(points, boundary_points, triangle
 end
 
 %% skewed_orientation: build orientation vector from @from point towards @to
-function orientation = skewed_orientation(from, to)
-	orientation = [to(1)-from(1) to(2)-from(2) to(3)-from(3)];
+function [new_point, orientation] = skewed_orientation(from, to, virtual_tool_length)
+	distance = pdist([from; to]);
+	new_point = from + (1 - virtual_tool_length / distance) * (to - from);
+	orientation = to - from;
 end
