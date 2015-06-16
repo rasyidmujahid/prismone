@@ -1,9 +1,13 @@
 %% build_normal: build ccp normal vector
 function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
 
+    vertex_idx_to_cc_points = sortrows(vertex_idx_to_cc_points, [4 3]);
     normals = vertex_idx_to_cc_points;
+    leng = length(vertex_idx_to_cc_points);
     
-    for i = 1:length(vertex_idx_to_cc_points)
+    for i = 1:leng
+
+        %% normal vector
         vertex_idx_1 = vertex_idx_to_cc_points(i,1);
         vertex_idx_2 = vertex_idx_to_cc_points(i,2);
 
@@ -22,6 +26,30 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
             normal = build_normal_on_edge(vertex_idx_1, vertex_idx_2, triangles);
         end
         normals(i,6:8) = normal;
+
+        %% tangent vector
+        to_reverse = false;
+        if (i+1) > leng
+            next_ccpoint = vertex_idx_to_cc_points(i-1, 3:5);
+            to_reverse = true;
+        else
+            next_ccpoint = vertex_idx_to_cc_points(i+1, 3:5);
+        end
+        
+        if next_ccpoint(:,2) ~= ccpoint(:,2)
+            %% if not lies on the same y
+            to_reverse = true;
+            next_ccpoint = vertex_idx_to_cc_points(i-1, 3:5);
+
+            if next_ccpoint(:,2) ~= ccpoint(:,2)
+                next_ccpoint = [];
+            end
+        end
+
+        if ~isempty(next_ccpoint)
+            tangent = build_tangent_normal(normal, (next_ccpoint - ccpoint), to_reverse);
+            normals(i,9:11) = tangent;
+        end
     end
 end
 
@@ -46,5 +74,18 @@ function normal = build_normal_on_edge(vertex_idx_1, vertex_idx_2, triangles)
     neighbor_triangle_normal_vectors = triangles(row, 4:6);
 
     %% vector sum
-    normal = sum(neighbor_triangle_normal_vectors);
+    if size(neighbor_triangle_normal_vectors,1) > 1
+        normal = sum(neighbor_triangle_normal_vectors);
+    else
+        normal = neighbor_triangle_normal_vectors;
+    end
+end
+
+%% build_tangent_normal: cross product of orthogonal vector to given normal vector
+function tangent = build_tangent_normal(normal, orthogonal, to_reverse)
+    tangent = cross(orthogonal, normal);
+    % tangent = orthogonal;
+    if to_reverse
+        tangent = -tangent;
+    end
 end

@@ -31,8 +31,8 @@ tool_length = 10;
 %% ================================================
 ccpoints_data = ccpoint(T(:,1:3), V, tool_length);
 
-%% build ccpoints normal vector
-ccpoints_data = build_normal(ccpoints_data, V, T)
+%% build ccpoints normal vector, ccpoints tangential vector
+ccpoints_data = build_normal(ccpoints_data, V, T);
 
 %% ccpoints
 cc_points = unique(ccpoints_data(:,3:5), 'rows');
@@ -113,7 +113,11 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 %     line(ccp_pairs(i, [1,4]), ccp_pairs(i, [2,5]), ccp_pairs(i, [3,6]), 'Color','b','LineWidth',2,'LineStyle','-')
 % end
 
-%% plot normal vector on top of ccpoints
+% plot normal vector on top of ccpoints
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
-    3, 'Color','r','LineWidth',1,'LineStyle','-');
+    3, 'Color','b','LineWidth',1,'LineStyle','-');
+
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
+    5, 'Color','r','LineWidth',1,'LineStyle','-');
