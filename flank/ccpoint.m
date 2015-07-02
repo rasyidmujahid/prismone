@@ -42,7 +42,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
 
                 ccp = intersect_triangle_with_lines(vertices(vertex_index_1,:), vertices(vertex_index_2,:), cutting_y);
                 if ~isempty(ccp)
-                    ccpoints = [ccpoints; vertex_index_1 vertex_index_2 ccp];
+                    ccpoints = [ccpoints; repmat([vertex_index_1 vertex_index_2], size(ccp, 1) ,1) ccp];
                 end
             else
                 disp('Found existing_ccp');
