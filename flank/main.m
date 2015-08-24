@@ -24,8 +24,8 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
-step_over = 2;
-tool_length = 20;
+step_over = 15;
+tool_length = 10;
 % rail_scale = 50;
 % slice_width = 5;
 
@@ -148,11 +148,25 @@ hold on;
 %     3, 'Color','b','LineWidth',1,'LineStyle','-');
 
 % plot tangen vector on top of ccpoints
-quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    1, 'Color','r','LineWidth',1,'LineStyle','-');
+% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+%     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
+%     1, 'Color','r','LineWidth',1,'LineStyle','-');
 
 % plot extended tangen vector on top of ccpoints
-quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    extended_tangen_normal(:,1), extended_tangen_normal(:,2), extended_tangen_normal(:,3), ...
-    1, 'Color','b','LineWidth',1,'LineStyle','-');
+% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+%     extended_tangen_normal(:,1), extended_tangen_normal(:,2), extended_tangen_normal(:,3), ...
+%     1, 'Color','b','LineWidth',1,'LineStyle','-');
+
+% draw flank lines
+ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
+ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
+ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
+for i = 1:size(ccpoints_data,1)
+    y = ccpoints_data(i,4)
+    if mod(y,2) == 0
+        color = 'b'
+    else
+        color = 'r'
+    end
+    line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color',color,'LineWidth',1,'LineStyle','-')
+end

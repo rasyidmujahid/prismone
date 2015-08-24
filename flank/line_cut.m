@@ -13,26 +13,25 @@ function extended_tangen_normal = line_cut(ccpoints_data, tool_length, triangles
 	disp(['size ccpoints_data(:,3:5) ', num2str(size(ccpoints_data(:,3:5)))]);
 	disp(['size extended_tangen_normal ', num2str(size(extended_tangen_normal))]);
 	
-	page_size = size(extended_tangen_normal, 1)
-	from = 1
-	to = from + page_size - 1
+	page_size = size(extended_tangen_normal, 1);
+	from = 1;
+	to = from + page_size - 1;
 
 	while to <= size(vertex1,1)
 		[intersect, t, u, v, xcoor] = TriangleRayIntersection(ccpoints_data(:,3:5), extended_tangen_normal, ...
-			vertex1(from:to,:), vertex1(from:to,:), vertex1(from:to,:), ...
+			vertex1(from:to,:), vertex2(from:to,:), vertex3(from:to,:), ...
 			'lineType', 'segment');
-
-		from = to + 1
-		to = from + page_size - 1
+		from = to + 1;
+		to = from + page_size - 1;
 	end
 
 	% last page
 	if to > size(vertex1,1)
-		from = from - (to - size(vertex1,1))
-		to = to - (to - size(vertex1,1))
+		from = from - (to - size(vertex1,1));
+		to = to - (to - size(vertex1,1));
 
 		[intersect, t, u, v, xcoor] = TriangleRayIntersection(ccpoints_data(:,3:5), extended_tangen_normal, ...
-			vertex1(from:to,:), vertex1(from:to,:), vertex1(from:to,:), ...
+			vertex1(from:to,:), vertex2(from:to,:), vertex3(from:to,:), ...
 			'lineType', 'segment');
 	end
 end

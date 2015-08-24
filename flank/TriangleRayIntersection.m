@@ -75,12 +75,6 @@ function [intersect, t, u, v, xcoor] = TriangleRayIntersection (...
 %
 % License: BSD license (http://en.wikipedia.org/wiki/BSD_licenses)
 
-intersect = [];
-t = [];
-u = [];
-v = [];
-xcoor= [];
-
 %% Transpose inputs if needed
 if (size(orig ,1)==3 && size(orig ,2)~=3), orig =orig' ; end
 if (size(dir  ,1)==3 && size(dir  ,2)~=3), dir  =dir'  ; end
@@ -174,7 +168,7 @@ switch planeType
   otherwise
     error('Triangle parameter must be either "one sided" or "two sided"');
 end
-if all(~angleOK), disp('all parallel than no intersections'); return; end % if all parallel than no intersections
+if all(~angleOK), return; end % if all parallel than no intersections
 
 %% Different behavior depending on one or two sided triangles
 det(~angleOK) = nan;              % change to avoid division by zero
@@ -194,7 +188,7 @@ else
   v = nan+zeros(size(u)); t=v;
   ok = (angleOK & u>=-zero & u<=1.0+zero); % mask
   % if all line/plane intersections are outside the triangle than no intersections
-  if ~any(ok), intersect = ok; disp('all line/plane intersections are outside the triangle than no intersections'); return; end
+  if ~any(ok), intersect = ok; return; end
   qvec = cross(tvec(ok,:), edge1(ok,:),2); % prepare to test V parameter
   v(ok,:) = sum(dir(ok,:).*qvec,2) ./ det(ok,:); % 2nd barycentric coordinate
   if (~strcmpi(lineType,'line')) % 'position on the line' coordinate
