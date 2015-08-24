@@ -29,6 +29,9 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
             existing_ccp = [];
             if ~isempty(ccpoints)
                 existing_ccp = ccpoints(find(ccpoints(:,1) == vertex_index_1 & ccpoints(:,2) == vertex_index_2),:);
+                if isempty(existing_ccp)
+                   existing_ccp = ccpoints(find(ccpoints(:,1) == vertex_index_2 & ccpoints(:,2) == vertex_index_1),:); 
+                end
             end
 
             if isempty(existing_ccp)
@@ -45,7 +48,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
                     ccpoints = [ccpoints; repmat([vertex_index_1 vertex_index_2], size(ccp, 1) ,1) ccp];
                 end
             else
-                disp('Found existing_ccp');
+                % disp('Found existing_ccp');
             end
         end
     end

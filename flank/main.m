@@ -4,6 +4,8 @@
 
 folder = 'C:\Project\Glash\parts';
 filename = '0_005stlasc';
+% folder = 'STL4';
+% filename = 'setengah-krucut';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -22,14 +24,34 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
+step_over = 2;
 tool_length = 10;
 % rail_scale = 50;
 % slice_width = 5;
 
 %% ================================================
+%% If need to plot normal vector on each triangle
+%% ================================================
+
+%% find center of triangles
+%% loop over triangles, foreach triangle T
+%% foreach their vertices v
+%% calculate their avarages point
+tricenter = [];
+for i = 1:size(T,1)
+    vid1 = T(i,1);  % first vertex ID
+    vid2 = T(i,2);
+    vid3 = T(i,3);
+    centerX = ( V(vid1,1) + V(vid2,1) + V(vid3,1) ) / 3;
+    centerY = ( V(vid1,2) + V(vid2,2) + V(vid3,2) ) / 3;
+    centerZ = ( V(vid1,3) + V(vid2,3) + V(vid3,3) ) / 3;
+    tricenter(i,:) = [centerX centerY centerZ];
+end
+
+%% ================================================
 %% Generate CC points
 %% ================================================
-ccpoints_data = ccpoint(T(:,1:3), V, tool_length);
+ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 
 %% build ccpoints normal vector, ccpoints tangential vector
 ccpoints_data = build_normal(ccpoints_data, V, T);
@@ -49,6 +71,36 @@ ccp_pairs = cutting_area(cc_points);
 % b = bucket.Builder(T(:,1:3), V, 10);
 % tri_buckets = b.buckets;
 
+%% ================================================================
+%% Multiple ray triangle intersections
+%% ================================================================
+
+%% resize destination vector into tool length
+extended_tangen_normal = zeros(size(ccpoints_data,1), 3);
+for i = 1:size(extended_tangen_normal ,1)
+	extended_tangen_normal(i,:) = tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
+end
+vertex1 = V(T(:,1),:);
+vertex2 = V(T(:,2),:);
+vertex3 = V(T(:,3),:);
+
+disp(['size ccpoints_data(:,3:5) ', num2str(size(ccpoints_data(:,3:5)))]);
+disp(['size extended_tangen_normal ', num2str(size(extended_tangen_normal))]);
+disp(['size vertices ', num2str(size(vertex1))]);
+
+page_size = size(extended_tangen_normal, 1)
+from = 1
+to = from + page_size - 1
+
+while to <= size(vertex1,1)
+
+	[intersect, t, u, v, xcoor] = TriangleRayIntersection(ccpoints_data(:,3:5), extended_tangen_normal, ...
+		vertex1(from:to,:), vertex1(from:to,:), vertex1(from:to,:), ...
+		'lineType', 'segment');
+
+	from = to + 1
+	to = from + page_size - 1
+end
 
 %% ================================================
 %% Plot points
@@ -72,16 +124,17 @@ zlabel ( '--Z axis--' );
 
 hold on;
 
-%% ================================================
-%% plot normal vector along with triangle surface
-%% ================================================
-%quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
+% ================================================
+% plot normal vector along with triangle surface
+% ================================================
+% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6), ...
+% 	1, 'Color','r','LineWidth',1,'LineStyle','-');
 
 %% ================================================
 %% Visualize cpp
 %% ================================================
 
-plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
+% plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 
 %% ================================================
 %% Draw colored buckets
@@ -114,10 +167,16 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 % end
 
 % plot normal vector on top of ccpoints
-quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
-    3, 'Color','b','LineWidth',1,'LineStyle','-');
+% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+%     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+%     3, 'Color','b','LineWidth',1,'LineStyle','-');
 
+% plot tangen vector on top of ccpoints
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    5, 'Color','r','LineWidth',1,'LineStyle','-');
+    1, 'Color','r','LineWidth',1,'LineStyle','-');
+
+% plot extended tangen vector on top of ccpoints
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    extended_tangen_normal(:,1), extended_tangen_normal(:,2), extended_tangen_normal(:,3), ...
+    1, 'Color','b','LineWidth',1,'LineStyle','-');
