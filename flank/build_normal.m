@@ -3,7 +3,7 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
 
     vertex_idx_to_cc_points = sortrows(vertex_idx_to_cc_points, [4 3]);
     normals = vertex_idx_to_cc_points;
-    leng = length(vertex_idx_to_cc_points)
+    leng = length(vertex_idx_to_cc_points);
     
     for i = 1:leng
 

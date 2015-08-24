@@ -25,7 +25,7 @@ end
 %% machining parameters
 %% ================================================
 step_over = 2;
-tool_length = 10;
+tool_length = 20;
 % rail_scale = 50;
 % slice_width = 5;
 
@@ -62,7 +62,7 @@ cc_points = unique(ccpoints_data(:,3:5), 'rows');
 %% ================================================
 %% Create cutting area
 %% ================================================
-ccp_pairs = cutting_area(cc_points);
+% ccp_pairs = cutting_area(cc_points);
 
 %% ================================================================
 %% Bucketing, Finding tool-and-part intersection, Gouging avoidance
@@ -76,31 +76,7 @@ ccp_pairs = cutting_area(cc_points);
 %% ================================================================
 
 %% resize destination vector into tool length
-extended_tangen_normal = zeros(size(ccpoints_data,1), 3);
-for i = 1:size(extended_tangen_normal ,1)
-	extended_tangen_normal(i,:) = tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
-end
-vertex1 = V(T(:,1),:);
-vertex2 = V(T(:,2),:);
-vertex3 = V(T(:,3),:);
-
-disp(['size ccpoints_data(:,3:5) ', num2str(size(ccpoints_data(:,3:5)))]);
-disp(['size extended_tangen_normal ', num2str(size(extended_tangen_normal))]);
-disp(['size vertices ', num2str(size(vertex1))]);
-
-page_size = size(extended_tangen_normal, 1)
-from = 1
-to = from + page_size - 1
-
-while to <= size(vertex1,1)
-
-	[intersect, t, u, v, xcoor] = TriangleRayIntersection(ccpoints_data(:,3:5), extended_tangen_normal, ...
-		vertex1(from:to,:), vertex1(from:to,:), vertex1(from:to,:), ...
-		'lineType', 'segment');
-
-	from = to + 1
-	to = from + page_size - 1
-end
+extended_tangen_normal = line_cut(ccpoints_data, tool_length, T, V);
 
 %% ================================================
 %% Plot points
