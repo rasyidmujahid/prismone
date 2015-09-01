@@ -1,8 +1,8 @@
 %% Main
 folder = 'parts';
-filename = '0_0075stlasc';
+filename = 'Braket';
 
-stlpath = strcat(folder, '/', filename, '.stl');
+stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
 vertices_csv = strcat(folder, '/', filename, '_v.csv');
 

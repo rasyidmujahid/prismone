@@ -74,7 +74,7 @@ roughing_points = layering(max_min, points_cloud, intersection_points, ...
 %% Build ccpoint orientation
 %% ================================================
 
-roughing_points = orientation(roughing_points, intersection_points, vertical_stepover);
+roughing_points = orientation(roughing_points, intersection_points, vertical_stepover, T, V);
 
 %% ================================================
 %% Will no longer need orintation, tool to cut in rotation way

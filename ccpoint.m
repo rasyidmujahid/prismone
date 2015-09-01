@@ -19,9 +19,9 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
 
         %# from the indices, get the triangle vertices
         tri_vertices = vertices(tri_vertex_ids,:);
-        disp(['triangle vertices 1: ', num2str(tri_vertices(1,:))]);
-        disp(['triangle vertices 2: ', num2str(tri_vertices(2,:))]);
-        disp(['triangle vertices 3: ', num2str(tri_vertices(3,:))]);
+        % disp(['triangle vertices 1: ', num2str(tri_vertices(1,:))]);
+        % disp(['triangle vertices 2: ', num2str(tri_vertices(2,:))]);
+        % disp(['triangle vertices 3: ', num2str(tri_vertices(3,:))]);
 
         %# from the triangle vertices, find all y cut across the edges of triangle
         cutting_y = [];
@@ -33,7 +33,7 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
                 cutting_y = [cutting_y; y];
             end 
         end
-        disp(['cutting_y ', num2str(cutting_y')]);
+        % disp(['cutting_y ', num2str(cutting_y')]);
     
         %# now start finding the intersections of this triangle with ys
         ccp = intersect_triangle_with_lines(tri_vertices, cutting_y);
@@ -87,7 +87,7 @@ function output = intersect_triangle_with_y(triangle_vertices, y)
     for i = 1:length(indices)
         point1 = triangle_vertices( indices(i,1), :);
         point2 = triangle_vertices( indices(i,2), :);
-        disp(['intersect_triangle_with_y : (', num2str(point1), ') (', num2str(point2), ')']);
+        % disp(['intersect_triangle_with_y : (', num2str(point1), ') (', num2str(point2), ')']);
         ccp = intersect_line_with_y( point1, point2, y);
         if ~isnan(ccp)
             output = [output; ccp];

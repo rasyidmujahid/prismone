@@ -28,7 +28,7 @@ function outputs = find_neighbour_points(point, roughing_points, boundary_points
             float_equals(roughing_points(:,3), point(3)), ...
             :), ...
         2);
-    if ~are_all_under_cbv(neighbour_x, boundary_points)
+    if ~isempty(neighbour_x) && ~are_all_under_cbv(neighbour_x, boundary_points)
         outputs = neighbour_x;
     end
 
@@ -39,7 +39,7 @@ function outputs = find_neighbour_points(point, roughing_points, boundary_points
             float_equals(roughing_points(:,3), point(3)), ...
             :), ...
         1);
-    if ~are_all_under_cbv(neighbour_y, boundary_points)
+    if ~isempty(neighbour_y) && ~are_all_under_cbv(neighbour_y, boundary_points)
         outputs = [outputs; neighbour_y];
         % outputs = neighbour_y;
     end
@@ -79,11 +79,17 @@ end
 %% returns:     a point closest to @point outside cbv
 function output = find_closest_neighbour_outside_cbv(point, neighbour_points, boundary_points)
     output = [];
+
+    % disp('find_closest_neighbour_outside_cbv');
+    % point
+    % neighbour_points
+
     point_index = find(ismember(neighbour_points, point, 'rows'));
     if isempty(point_index)
-        ME = MException('MyComponent:invalidFormat', ...
-            'The point which is to find its closest neighbour is not inside neighbour_points');
+        message = 'The point which is to find its closest neighbour is not inside neighbour_points';
+        ME = MException('MyComponent:invalidFormat', message);
         throw(ME);
+        % disp(message);
     else
         len = length(neighbour_points);
         backward_index = point_index;
