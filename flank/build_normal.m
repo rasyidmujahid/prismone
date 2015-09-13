@@ -52,6 +52,12 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
 
         if ~isempty(next_ccpoint)
             tangent = build_tangent_normal(normal, (next_ccpoint - ccpoint), to_reverse);
+            
+            %% reverse negative k in vector (i,j,k)
+            if tangent(3) < 0
+                tangent = -tangent;
+            end
+            
             normals(i,9:11) = tangent;
         end
     end

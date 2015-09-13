@@ -101,16 +101,16 @@ zlabel ( '--Z axis--' );
 hold on;
 
 % ================================================
-% plot normal vector along with triangle surface
+% plot normal vector on top of triangle surface
 % ================================================
 % quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6), ...
 % 	1, 'Color','r','LineWidth',1,'LineStyle','-');
 
 %% ================================================
-%% Visualize cpp
+%% plot cpp
 %% ================================================
 
-% plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
+plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 
 %% ================================================
 %% Draw colored buckets
@@ -157,16 +157,19 @@ hold on;
 %     extended_tangen_normal(:,1), extended_tangen_normal(:,2), extended_tangen_normal(:,3), ...
 %     1, 'Color','b','LineWidth',1,'LineStyle','-');
 
-% draw flank lines
+%% ================================================
+%% draw flank lines
+%% ================================================
 ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
 ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 for i = 1:size(ccpoints_data,1)
-    y = ccpoints_data(i,4)
-    if mod(y,2) == 0
-        color = 'b'
-    else
-        color = 'r'
-    end
-    line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color',color,'LineWidth',1,'LineStyle','-')
+    y = ccpoints_data(i,4);
+    color = 'b';
+    % if mod(y,2) == 0
+    %     color = 'b';
+    % else
+    %     color = 'r';
+    % end
+    line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color',color,'LineWidth',2,'LineStyle','-')
 end
