@@ -26,7 +26,7 @@ function extended_tangen_normal = line_cut(ccpoints_data, tool_length, triangles
 	end
 
 	% last page
-	if to > size(vertex1,1)
+	if to > size(vertex1,1) && size(vertex1,1) > size(extended_tangen_normal,1)
 		from = from - (to - size(vertex1,1));
 		to = to - (to - size(vertex1,1));
 
