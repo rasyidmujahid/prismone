@@ -21,7 +21,6 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
 
         %% if ccp lies on vertex 2
         elseif pdist([ccpoint; vertex_2]) < eps
-            
             normal = build_normal_on_vertex(vertex_idx_2, triangles);
 
         %% 2. if ccp lies on edge
@@ -71,7 +70,11 @@ function normal = build_normal_on_vertex(vertex_index, triangles)
     neighbor_triangle_normal_vectors = triangles(row, 4:6);
 
     %% vector sum
-    normal = sum(neighbor_triangle_normal_vectors);
+    if size(neighbor_triangle_normal_vectors,1) > 1
+        normal = sum(neighbor_triangle_normal_vectors);
+    else
+        normal = neighbor_triangle_normal_vectors;
+    end
 end
 
 %% build_normal_on_edge: build ccpoint normal vector
@@ -95,7 +98,6 @@ end
 %% build_tangent_normal: cross product of orthogonal vector to given normal vector
 function tangent = build_tangent_normal(normal, orthogonal, to_reverse)
     tangent = cross(orthogonal, normal);
-    % tangent = orthogonal;
     if to_reverse
         tangent = -tangent;
     end
