@@ -3,7 +3,8 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-filename = 'coba13';
+% filename = 'coba13';
+filename = 'coba inverted kontur';
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -18,6 +19,11 @@ else
 	csvwrite(triangles_csv, T);
 	csvwrite(vertices_csv, V);
 end
+
+V(1:10,:)
+T(1:10,:)
+
+[totalVolume, totalArea] = stlVolume(V', T(:,1:3)')
 
 %% ================================================
 %% If need to plot normal vector on each triangle
@@ -74,7 +80,7 @@ roughing_points = layering(max_min, points_cloud, intersection_points, ...
 %% Build ccpoint orientation
 %% ================================================
 
-roughing_points = orientation(roughing_points, intersection_points, vertical_stepover, T, V);
+roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
 
 %% ================================================
 %% Will no longer need orintation, tool to cut in rotation way
