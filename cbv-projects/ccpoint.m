@@ -111,7 +111,7 @@ function output = points_cloud(max_min, density)
     %% Iterating all slicing lines to cut through the part.
     %% Okay, now, generate all possible slicing lines (SL).
     %% An SL is expressed with (i,j) i in X and j in Y.
-    offset = 0;
+    offset = 0.5;
     min_y = max_min(2,2) + offset;
     max_y = max_min(1,2) - offset;
     min_x = max_min(2,1) + offset;
