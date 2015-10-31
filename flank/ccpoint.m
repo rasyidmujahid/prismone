@@ -26,15 +26,15 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
             vertex_index_1 = triangle_vertex_indices(mod(i,3)+1);
             vertex_index_2 = triangle_vertex_indices(mod(i+1,3)+1);
 
-            existing_ccp = [];
+            existing_ccp_index = [];
             if ~isempty(ccpoints)
-                existing_ccp = ccpoints(find(ccpoints(:,1) == vertex_index_1 & ccpoints(:,2) == vertex_index_2),:);
-                if isempty(existing_ccp)
-                   existing_ccp = ccpoints(find(ccpoints(:,1) == vertex_index_2 & ccpoints(:,2) == vertex_index_1),:); 
+                existing_ccp_index = ccpoints(find(ccpoints(:,1) == vertex_index_1 & ccpoints(:,2) == vertex_index_2),:);
+                if isempty(existing_ccp_index)
+                   existing_ccp_index = ccpoints(find(ccpoints(:,1) == vertex_index_2 & ccpoints(:,2) == vertex_index_1),:); 
                 end
             end
 
-            if isempty(existing_ccp)
+            if isempty(existing_ccp_index)
                 cutting_y = [];
                 for i = 1:length(lines_y)
                     y = lines_y(i);
@@ -44,11 +44,19 @@ function ccpoints = ccpoint(triangles, vertices, stepover)
                 end
 
                 ccp = intersect_triangle_with_lines(vertices(vertex_index_1,:), vertices(vertex_index_2,:), cutting_y);
+
                 if ~isempty(ccp)
-                    ccpoints = [ccpoints; repmat([vertex_index_1 vertex_index_2], size(ccp, 1) ,1) ccp];
+                    if ~isempty(ccpoints)
+                        existing_ccp = ccpoints(find(ccpoints(:,3) == ccp(1) & ccpoints(:,4) == ccp(2) & ccpoints(:,5) == ccp(3)), :);
+                    else
+                        existing_ccp = [];
+                    end
+                    if isempty(existing_ccp)
+                        ccpoints = [ccpoints; repmat([vertex_index_1 vertex_index_2], size(ccp, 1) ,1) ccp];
+                    end
                 end
             else
-                % disp('Found existing_ccp');
+                % disp('Found existing_ccp_index');
             end
         end
     end

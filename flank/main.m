@@ -4,8 +4,8 @@
 
 folder = 'C:\Project\Glash\parts';
 filename = '0_005stlasc';
-% folder = 'STL4';
-% filename = 'setengah-krucut';
+% folder = 'STL20151020';
+% filename = 'Part3';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -55,6 +55,10 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 
 %% build ccpoints normal vector, ccpoints tangential vector
 ccpoints_data = build_normal(ccpoints_data, V, T);
+
+%% leave unique ccpoints only. ccpoints at triangle vertex
+%% will happen to be duplicated
+
 
 %% ccpoints
 cc_points = unique(ccpoints_data(:,3:5), 'rows');
@@ -147,7 +151,7 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 %     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
 %     3, 'Color','b','LineWidth',1,'LineStyle','-');
 
-% plot tangen vector on top of ccpoints
+% % plot tangen vector on top of ccpoints
 % quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
 %     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
 %     1, 'Color','r','LineWidth',1,'LineStyle','-');
@@ -163,13 +167,35 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
 ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
-for i = 1:size(ccpoints_data,1)
-    y = ccpoints_data(i,4);
-    color = 'b';
-    % if mod(y,2) == 0
-    %     color = 'b';
-    % else
-    %     color = 'r';
-    % end
-    line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color',color,'LineWidth',2,'LineStyle','-')
+
+% extended_tangen_normal(:,1:3)
+% ccpoints_data(:,12:14)
+
+ccpoints_data = sortrows(ccpoints_data, [4 3]);
+
+for i = 1:size(ccpoints_data,1)-1
+
+    % line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color','red','LineWidth',2,'LineStyle','-');
+
+    if ccpoints_data(i,4) ~= ccpoints_data(i+1,4)
+        continue;
+    end
+
+    d1 = ccpoints_data(i,4) < ccpoints_data(i,13);
+    d2 = ccpoints_data(i+1,4) < ccpoints_data(i+1,13);
+
+    if xor(d1,d2)
+        continue;
+    end
+
+    rx = [ccpoints_data(i,3) ccpoints_data(i+1,3) ccpoints_data(i+1,12) ccpoints_data(i,12)];
+    ry = [ccpoints_data(i,4) ccpoints_data(i+1,4) ccpoints_data(i+1,13) ccpoints_data(i,13)];
+    rz = [ccpoints_data(i,5) ccpoints_data(i+1,5) ccpoints_data(i+1,14) ccpoints_data(i,14)];
+    % c = 'red';
+    % patch(rx,ry,rz,c);
+    
+    f2 = [1 2 3 4];
+    v2 = [rx' ry' rz'];
+    col = [0; 6; 4];
+    patch('Faces',f2,'Vertices',v2,'EdgeColor','blue','FaceColor','red','LineWidth',2);
 end
