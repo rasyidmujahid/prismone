@@ -4,7 +4,8 @@
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
 % filename = 'coba13';
-filename = 'coba inverted kontur';
+filename = 'coba kontur';
+% filename = 'bentuk A';
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -19,9 +20,6 @@ else
 	csvwrite(triangles_csv, T);
 	csvwrite(vertices_csv, V);
 end
-
-V(1:10,:)
-T(1:10,:)
 
 [totalVolume, totalArea] = stlVolume(V', T(:,1:3)')
 
@@ -50,7 +48,7 @@ density = 5; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 5;
+vertical_stepover   = 15;
 max_min = maxmin(V);
 
 %% ================================================
@@ -76,16 +74,19 @@ ccp = cell2mat(intersection_points(:,1));
 roughing_points = layering(max_min, points_cloud, intersection_points, ...
     vertical_stepover, horizontal_stepover);
 
+%% cbv_points only
+cbv_points = [];
+for i = 1:size(roughing_points,1)
+    if is_under_cbv(roughing_points(i,1:3), intersection_points)
+        cbv_points = [cbv_points; roughing_points(i,1:3)];
+    end
+end
+
 %% ================================================
 %% Build ccpoint orientation
 %% ================================================
 
-roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
-
-%% ================================================
-%% Will no longer need orintation, tool to cut in rotation way
-%% ================================================
-
+% roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
 
 %% ================================================
 %% Plot points
@@ -126,13 +127,16 @@ hold on;
 %% plot cc points
 % plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
 
-%% plot roughing_points
-plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 5);
+% plot cbv points only, with different marker
+plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
 
-% plot roughing_points orientation
-quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
-    roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
-    3, 'Color','r','LineWidth',1,'LineStyle','-' );
+%% plot roughing_points
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
+
+%% plot roughing_points orientation
+% quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
+%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+%     1, 'Color','r','LineWidth',1,'LineStyle','-' );
 
 %% draw tool path
 % toolpath = [];
