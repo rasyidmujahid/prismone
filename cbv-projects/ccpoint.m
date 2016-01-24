@@ -111,13 +111,13 @@ function output = points_cloud(max_min, density)
     %% Iterating all slicing lines to cut through the part.
     %% Okay, now, generate all possible slicing lines (SL).
     %% An SL is expressed with (i,j) i in X and j in Y.
-    offset = 0.5;
+    offset = 0.001;
     min_y = max_min(2,2) + offset;
     max_y = max_min(1,2) - offset;
     min_x = max_min(2,1) + offset;
     max_x = max_min(1,1) - offset;
 
-    [output(:,:,1), output(:,:,2), output(:,:,3)] = meshgrid(min_x:density:max_x, min_x:density:max_y, 0);
+    [output(:,:,1), output(:,:,2), output(:,:,3)] = meshgrid(min_x:density:max_x, min_y:density:max_y, 0);
 
     %% append the last with max values if does not include
 end

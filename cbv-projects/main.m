@@ -21,7 +21,7 @@ else
 	csvwrite(vertices_csv, V);
 end
 
-[totalVolume, totalArea] = stlVolume(V', T(:,1:3)')
+[partVolume, partArea] = stlVolume(V', T(:,1:3)')
 
 %% ================================================
 %% If need to plot normal vector on each triangle
@@ -48,8 +48,9 @@ density = 5; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 15;
+vertical_stepover   = 10;
 max_min = maxmin(V);
+tool_length = 20;
 
 %% ================================================
 %% Generate cutter contact points
@@ -86,7 +87,36 @@ end
 %% Build ccpoint orientation
 %% ================================================
 
-% roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
+roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
+
+%% ================================================
+%% Volume calculation: Part & CBV
+%% ================================================
+
+totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3))
+invertedVolume = totalVolume - partVolume
+
+cbv_boundary_points = [];
+for i = 1:size(points_cloud,1)
+    for j = 1:size(points_cloud,2)
+        sl = [points_cloud(i,j,1) points_cloud(i,j,2)];
+        boundary_at_this_slicing_line = get_boundary_points_at(sl, intersection_points);
+        if (size(boundary_at_this_slicing_line,1)) > 2
+            %% it means under cbv
+            cbv_boundary_points = [cbv_boundary_points; boundary_at_this_slicing_line(2:3,1:3)];
+        end
+    end
+end
+
+dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
+tri = dt(:,:);
+cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
+
+%% ================================================
+%% Volume calculation: Cut CBV
+%% ================================================
+
+%% DOWN BELOW
 
 %% ================================================
 %% Plot points
@@ -107,6 +137,65 @@ zlabel ( '--Z axis--' );
 
 hold on;
 
+%% plot cbv volume part
+% trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
+
+%% plot cutting cbv
+all_z = unique(roughing_points(:,3));
+all_y = unique(roughing_points(:,2));
+total_cutting_cbv_volume = 0;
+for i = 1:size(all_z,1)
+    z = all_z(i);
+    indices = find_rows_in_matrix(z, roughing_points(:,3));
+
+    roughing_points_at_this_z = roughing_points(indices,:);
+    cbv_points_at_this_z = [];
+    for j = 1:size(roughing_points_at_this_z,1)
+        if (~isequal(roughing_points_at_this_z(j,7:9), [0 0 100]))
+            cbv_points_at_this_z = [cbv_points_at_this_z; roughing_points_at_this_z(j,:)];
+        end 
+    end
+    
+    if (isempty(cbv_points_at_this_z))
+        continue;
+    end
+
+    for j = 1:size(all_y,1)
+        y = all_y(j);
+        indices = find_rows_in_matrix(y, cbv_points_at_this_z(:,2));
+        last_index = indices(end);
+        last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
+        tool_handle_origin_point = last_cbv_point_at_this_z_y(:,4:6) + ...
+            tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
+        cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
+
+        %% =================================================
+        %% calculate cutting cbv volume
+        %% =================================================
+        if (j == 1)
+            first_index = indices(1);
+            first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,4:6);
+            last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
+            u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
+            v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
+            angle = atan2(norm(cross(u,v)),dot(u,v))
+            angle_degree = angle / pi * 180
+            cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2))
+            intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2))
+            cbv_part_volume = cbv_part_volume - intersected_cbv_volume
+            total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
+        end
+    end
+    
+    dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
+    tri = dt(:,:);
+    trisurf(tri, cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
+
+    cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
+end
+
+total_cutting_cbv_volume
+
 %% plot normal vector along with triangle surface
 %%% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
@@ -124,30 +213,33 @@ hold on;
 %     end
 % end
 
-%% plot cc points
-% plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
+%% plot cc points/intersection points/boundary points
+plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
 
-% plot cbv points only, with different marker
+%% plot cbv points
 plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
 
-%% plot roughing_points
-plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
+%% plot all roughing_points with cbv skewed orientation
+plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
+
+%% plot cbv points only, after skewed
+plot3(cbv_roughing_points(:,1), cbv_roughing_points(:,2), cbv_roughing_points(:,3), 'bx', 'MarkerSize', 10);
 
 %% plot roughing_points orientation
-% quiver3( roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), ...
-%     roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+% quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+%     roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
 %     1, 'Color','r','LineWidth',1,'LineStyle','-' );
 
 %% draw tool path
 % toolpath = [];
 
-% z = flipud(unique(roughing_points(:,3)));
+% z = flipud(unique(roughing_points(:,6)));
 % direction = NaN;
 
 % direction_type = 1;
 
 % for i = 1:size(z)
-%     roughing_points_at_z = roughing_points(roughing_points(:,3) == z(i),:);
+%     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
 
 %     if mod(i,2) == 0
 %         y = unique(roughing_points_at_z(:,direction_type));

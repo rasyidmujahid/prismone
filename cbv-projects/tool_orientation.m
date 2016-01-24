@@ -26,6 +26,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 
 	for i = 1:size(points,1)
 		point = points(i,:);
+		points_with_orientation(i, 1:3) = point;
 		if is_under_cbv(point, boundary_points)
 			new_point = [];
 			ccp_outside_cbv = find_closest_ccp_outside_cbv(point, points, boundary_points);
@@ -38,7 +39,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 				% check for gouging
 				orientation = adjust_after_gouging(orientation);
 
-				points_with_orientation(i, 1:3) = new_point;
+				points_with_orientation(i, 4:6) = new_point;
 			else
 				% orientation = [0 0 0];
 
@@ -58,7 +59,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 						% check for gouging
 						orientation = adjust_after_gouging(orientation);
 
-						points_with_orientation(i, 1:3) = new_point;
+						points_with_orientation(i, 4:6) = new_point;
 					else
 						disp('ccp_outside_cbv is empty.');
 						orientation = [0 0 0];
@@ -70,7 +71,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 		else
 			orientation = [0 0 100];
         end
-        points_with_orientation(i, 4:6) = orientation;
+        points_with_orientation(i, 7:9) = orientation;
     end
 
  %    if ~isempty(cbv_points_no_outside_neighbour)
