@@ -222,9 +222,6 @@ plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10)
 %% plot all roughing_points with cbv skewed orientation
 plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
 
-%% plot cbv points only, after skewed
-plot3(cbv_roughing_points(:,1), cbv_roughing_points(:,2), cbv_roughing_points(:,3), 'bx', 'MarkerSize', 10);
-
 %% plot roughing_points orientation
 % quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
 %     roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
