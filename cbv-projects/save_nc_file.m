@@ -1,5 +1,4 @@
-%% save_nc_file: print local coordinate to global coordiante
-%% 
+%% save_nc_file: print local coordinate to global coordinate
 function output = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, filename)
     if tilting_type == 'table'
         output = table_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
