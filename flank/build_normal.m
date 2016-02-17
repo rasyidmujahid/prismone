@@ -57,7 +57,7 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
                 tangent = -tangent;
             end
             
-            normals(i,9:11) = tangent;
+            normals(i,9:11) = tangent / norm(tangent);
         end
     end
 end

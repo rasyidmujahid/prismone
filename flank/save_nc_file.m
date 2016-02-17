@@ -13,13 +13,15 @@ function output = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, f
         throw(ME); 
     end
 
+    output = sortrows(output, [2 1]);
+
     %% write to file [x y z i j k]
     fileID = fopen([filename, '.nc'], 'w');
     for i = 1:size(output,1)
-        fprintf(fileID, 'X%f Y%f Z%f I%f J%f K%f\r\n', output);
+        fprintf(fileID, 'X%f Y%f Z%f I%f J%f K%f\r\n', output(i,:));
     end
     fclose(fileID);
-;end
+end
 
 %% table_tilting: generate nc points for table tilting
 %% retuns [x y z i j k]
@@ -35,6 +37,7 @@ function nc_points = table_tilting(qx, qy, qz, kx, ky, kz, lx, ly, lz, lt)
     nc_points(:, 1) = (qx - lx) .* cos(A) - (qy - ly) .* sin(C) + lx;
     nc_points(:, 2) = (qx - lx) .* cos(A) .* sin(C) + (qy - ly) .* cos(A) .* cos(C) - (qz - lz) .* sin(A) + ly;
     nc_points(:, 3) = (qx - lx) .* sin(A) .* sin(C) + (qy - ly) .* sin(A) .* cos(C) + (qz - lz) .* cos(A) + lz;
+    % [qx nc_points(:, 1) qy nc_points(:, 2) qz nc_points(:, 3)]
     nc_points(:, 4:6) = [kx, ky, kz];
 end
 

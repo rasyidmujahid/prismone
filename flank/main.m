@@ -55,8 +55,10 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% build ccpoints normal vector, ccpoints tangential vector
 ccpoints_data = build_normal(ccpoints_data, V, T);
 
-%% order by x,y to print to NC file
-save_nc_file(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+%% ================================================
+%% save to NC file
+%% ================================================
+nc = save_nc_file(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
     offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
