@@ -3,7 +3,7 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-% filename = 'coba13';
+% filename = 'coba10';
 filename = 'coba kontur';
 % filename = 'bentuk A';
 
@@ -48,9 +48,12 @@ density = 5; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 10;
+vertical_stepover   = 5;
+tool_length = 10;
+offset = [10 10 10];
+effective_tool_length = 20;
+
 max_min = maxmin(V);
-tool_length = 20;
 
 %% ================================================
 %% Generate cutter contact points
@@ -88,6 +91,14 @@ end
 %% ================================================
 
 roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
+
+%% ================================================
+%% save to NC file
+%% ================================================
+under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_points(:,5) ~= 0 & roughing_points(:,6) ~= 0),:);
+nc = save_nc_file(under_cbv_points(:,3), under_cbv_points(:,4), under_cbv_points(:,5), ...
+    under_cbv_points(:,7), under_cbv_points(:,8), under_cbv_points(:,9), ...
+    offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
 %% ================================================
 %% Volume calculation: Part & CBV
@@ -186,11 +197,15 @@ for i = 1:size(all_z,1)
             total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
         end
     end
-    
+
     dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
     tri = dt(:,:);
-    trisurf(tri, cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
 
+    if isempty(tri)
+        continue;
+    end
+
+    trisurf(tri, cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
     cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
 end
 
