@@ -41,6 +41,12 @@ for i = 1:size(T,1)
     tricenter(i,:) = [centerX centerY centerZ];
 end
 
+TRI1 = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
+TRI2 = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
+TRANS1 = [1 0 50 0 1 0 0 0 1 0 0 1];
+TRANS2 = [1 0 0 0 1 0 0 0 1 0 0 1];
+CL = coldetect(TRI1, TRI2, TRANS1, TRANS2)
+
 %% ================================================
 %% Roughing parameters
 %% ================================================
@@ -96,7 +102,7 @@ roughing_points = tool_orientation(roughing_points, intersection_points, vertica
 %% save to NC file
 %% ================================================
 under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_points(:,5) ~= 0 & roughing_points(:,6) ~= 0),:);
-nc = save_nc_file(under_cbv_points(:,3), under_cbv_points(:,4), under_cbv_points(:,5), ...
+nc = save_nc_file(under_cbv_points(:,4), under_cbv_points(:,5), under_cbv_points(:,6), ...
     under_cbv_points(:,7), under_cbv_points(:,8), under_cbv_points(:,9), ...
     offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
@@ -122,6 +128,14 @@ end
 dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 tri = dt(:,:);
 cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
+
+
+%% ================================================
+%% Volume calculation: Part & CBV
+%% ================================================
+
+
+
 
 %% ================================================
 %% Volume calculation: Cut CBV
