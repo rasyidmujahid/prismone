@@ -25,6 +25,7 @@ end
 %% ================================================
 step_over = 15;
 tool_length = 10;
+tool_radius = 2;
 offset = [10 10 10];
 effective_tool_length = 20;
 
@@ -49,11 +50,22 @@ end
 
 %% ================================================
 %% Generate CC points
+%%
+%% ccpoints_data:
+%% || vertex index 1 || vertex index 2 || x   y   z ||
 %% ================================================
+
 ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 
+
+%% ================================================
 %% build ccpoints normal vector, ccpoints tangential vector
+%% ccpoints_data:
+%% || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
+%% ================================================
+
 ccpoints_data = build_normal(ccpoints_data, V, T);
+
 
 %% ================================================
 %% save to NC file
@@ -167,6 +179,8 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 
 %% ================================================
 %% draw flank lines
+%% ccpoints_data:
+%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2
 %% ================================================
 ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
@@ -176,6 +190,10 @@ ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 % ccpoints_data(:,12:14)
 
 ccpoints_data = sortrows(ccpoints_data, [4 3]);
+
+cylinder_handle = [];
+cylinder_end_1 = [];
+cylinder_end_2 = [];
 
 for i = 1:size(ccpoints_data,1)-1
 
@@ -202,4 +220,15 @@ for i = 1:size(ccpoints_data,1)-1
     v2 = [rx' ry' rz'];
     col = [0; 6; 4];
     patch('Faces',f2,'Vertices',v2,'EdgeColor','blue','FaceColor','red','LineWidth',2);
+
+    
+    % if i == 10
+        delete(cylinder_handle);
+        delete(cylinder_end_1);
+        delete(cylinder_end_2);
+        p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+        p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+        [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0)
+        drawnow;
+    % end
 end
