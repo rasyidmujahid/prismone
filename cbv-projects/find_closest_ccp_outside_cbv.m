@@ -64,11 +64,20 @@ end
 function under_cbv = are_all_under_cbv(sorted_points, boundary_points)
     %% check min max points only to consider
 
+    % under_cbv = is_under_cbv(sorted_points(1,:), boundary_points) & ...
+    %     is_under_cbv(sorted_points(end,:), boundary_points);
+
     %% TODO: cant check only min and max, since if doubled cbv, 
     %% this function will return true, while should be false.
-     
-    under_cbv = is_under_cbv(sorted_points(1,:), boundary_points) & ...
-        is_under_cbv(sorted_points(end,:), boundary_points);
+    %% DONE.
+
+    under_cbv = true;
+    for i = 1:size(sorted_points,1)
+        under_cbv = under_cbv && is_under_cbv(sorted_points(i,:), boundary_points);
+        if ~under_cbv
+            break;
+        end
+    end
 end
 
 %% find_closest_neighbour_outside_cbv: given an array of neighbour points, find one that 
