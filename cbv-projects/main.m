@@ -3,7 +3,7 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-% filename = 'coba10';
+% filename = 'coba7';
 filename = 'coba kontur';
 % filename = 'bentuk A';
 
@@ -20,8 +20,6 @@ else
 	csvwrite(triangles_csv, T);
 	csvwrite(vertices_csv, V);
 end
-
-[partVolume, partArea] = stlVolume(V', T(:,1:3)')
 
 %% ================================================
 %% If need to plot normal vector on each triangle
@@ -102,17 +100,18 @@ roughing_points = tool_orientation(roughing_points, intersection_points, vertica
 %% save to NC file
 %% ================================================
 under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_points(:,5) ~= 0 & roughing_points(:,6) ~= 0),:);
-nc = save_nc_file(under_cbv_points(:,4), under_cbv_points(:,5), under_cbv_points(:,6), ...
-    under_cbv_points(:,7), under_cbv_points(:,8), under_cbv_points(:,9), ...
-    offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
+% nc = save_nc_file(under_cbv_points(:,4), under_cbv_points(:,5), under_cbv_points(:,6), ...
+%     under_cbv_points(:,7), under_cbv_points(:,8), under_cbv_points(:,9), ...
+%     offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
 %% ================================================
 %% Volume calculation: Part & CBV
 %% ================================================
-
+[partVolume, partArea] = stlVolume(V', T(:,1:3)')
 totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3))
 invertedVolume = totalVolume - partVolume
 
+%% ccpoints that bound the CBV part
 cbv_boundary_points = [];
 for i = 1:size(points_cloud,1)
     for j = 1:size(points_cloud,2)
@@ -125,6 +124,7 @@ for i = 1:size(points_cloud,1)
     end
 end
 
+%% Creates a Delaunay triangulation from a set of CBV ccpoints
 dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 tri = dt(:,:);
 cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
@@ -135,13 +135,17 @@ cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
 %% ================================================
 
 
-
-
 %% ================================================
 %% Volume calculation: Cut CBV
 %% ================================================
 
 %% DOWN BELOW
+
+
+%% ================================================
+%% Gouging detection & avoidance
+%% ================================================
+
 
 %% ================================================
 %% Plot points
@@ -165,10 +169,14 @@ hold on;
 %% plot cbv volume part
 % trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 
+%% ================================================
 %% plot cutting cbv
+%% ================================================
 all_z = unique(roughing_points(:,3));
 all_y = unique(roughing_points(:,2));
+
 total_cutting_cbv_volume = 0;
+
 for i = 1:size(all_z,1)
     z = all_z(i);
     indices = find_rows_in_matrix(z, roughing_points(:,3));
@@ -177,6 +185,7 @@ for i = 1:size(all_z,1)
     cbv_points_at_this_z = [];
     for j = 1:size(roughing_points_at_this_z,1)
         if (~isequal(roughing_points_at_this_z(j,7:9), [0 0 100]))
+            %% find all cbv points at this z : roughing points that its orientation is not skewed
             cbv_points_at_this_z = [cbv_points_at_this_z; roughing_points_at_this_z(j,:)];
         end 
     end
@@ -188,6 +197,14 @@ for i = 1:size(all_z,1)
     for j = 1:size(all_y,1)
         y = all_y(j);
         indices = find_rows_in_matrix(y, cbv_points_at_this_z(:,2));
+
+        if (isempty(indices))
+            % disp(['y: ', num2str(y)]);
+            % disp(['z: ', num2str(z)]);
+            continue;
+        end
+
+        %% add a new point where the tool-handle comes from
         last_index = indices(end);
         last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
         tool_handle_origin_point = last_cbv_point_at_this_z_y(:,4:6) + ...
@@ -195,7 +212,8 @@ for i = 1:size(all_z,1)
         cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
 
         %% =================================================
-        %% calculate cutting cbv volume
+        %% calculate cut cbv volume
+        %% TODO: if two-sided cbv
         %% =================================================
         if (j == 1)
             first_index = indices(1);
@@ -203,24 +221,54 @@ for i = 1:size(all_z,1)
             last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
             u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
             v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
+
+            %% find angle between 2 vector (in radian)
             angle = atan2(norm(cross(u,v)),dot(u,v))
             angle_degree = angle / pi * 180
+            
+            %% cylinder part volume I = angle/2π * area * heigth
             cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2))
+
+            %% cylinder part volume II = angle/2π * area * (tool length - stepover)
             intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2))
+
+            %% get actual volume, without intersection
             cbv_part_volume = cbv_part_volume - intersected_cbv_volume
             total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
         end
     end
 
-    dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
+    cbv_points_at_this_z
+
+    %% if two-sided cbv, separated by y = c line, pick random y = middle one
+    y = (max_min(1,2) - max_min(2,2)) / 2;
+    cbv_points_before_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) < y),:);
+    cbv_points_after_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) >= y),:);
+
+    % dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
+    % tri = dt(:,:);
+
+    %% before x
+    dt = DelaunayTri(cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
     tri = dt(:,:);
 
     if isempty(tri)
         continue;
     end
 
-    trisurf(tri, cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
-    cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
+    trisurf(tri, cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
+
+    %% after x
+    dt = DelaunayTri(cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
+    tri = dt(:,:);
+
+    if isempty(tri)
+        continue;
+    end
+
+    trisurf(tri, cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
+
+    % cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
 end
 
 total_cutting_cbv_volume
