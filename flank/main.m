@@ -194,7 +194,7 @@ ccpoints_data = sortrows(ccpoints_data, [4 3]);
 cylinder_handle = [];
 cylinder_end_1 = [];
 cylinder_end_2 = [];
-
+CL = 0;
 for i = 1:size(ccpoints_data,1)-1
 
     % line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color','red','LineWidth',2,'LineStyle','-');
@@ -221,14 +221,26 @@ for i = 1:size(ccpoints_data,1)-1
     col = [0; 6; 4];
     patch('Faces',f2,'Vertices',v2,'EdgeColor','blue','FaceColor','red','LineWidth',2);
 
+    %% ================================
+    %% simulate cylinder
+    %% ================================
     
-    % if i == 10
+    if CL == 0
         delete(cylinder_handle);
         delete(cylinder_end_1);
         delete(cylinder_end_2);
-        p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-        p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-        [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0)
-        drawnow;
-    % end
+    else
+        set(cylinder_handle, 'FaceColor', 'r');
+    end
+    p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+    p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+    [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0)
+    drawnow;
+
+    tri = surf2patch(cylinder_handle, 'triangles');
+    cylinder_tri = [tri.vertices(tri.faces(:,1),:) tri.vertices(tri.faces(:,2),:) tri.vertices(tri.faces(:,3),:)];
+    working_part = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
+    trans1 = [0 0 0 1 0 0 0 1 0 0 0 1];
+    trans2 = [0 0 0 1 0 0 0 1 0 0 0 1];
+    CL = coldetect(cylinder_tri, working_part, trans1, trans2)
 end
