@@ -71,7 +71,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 		else
 			orientation = [0 0 100];
         end
-        points_with_orientation(i, 7:9) = orientation;
+        points_with_orientation(i, 7:9) = orientation + [0 0 0];
     end
 
  %    if ~isempty(cbv_points_no_outside_neighbour)
