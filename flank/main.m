@@ -110,14 +110,12 @@ Z = V(:, 3);
 %% Visualize faceted model
 %% ================================================
 
-h3 = trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-  
+figure('Name', 'CC Points', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 axis equal;
-
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
-
 hold on;
 
 % ================================================
@@ -132,45 +130,29 @@ hold on;
 
 plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 
-%% ================================================
-%% Draw colored buckets
-%% ================================================
-% colors = ['r';'g';'b';'c';'m';'y';'w';'k'];
-% for i = 1:size(tri_buckets,1)
-%     for j = 1:size(tri_buckets,2)
-%         selected_bucket = tri_buckets(i,j).bag;
-%         for n = 1:3:size(selected_bucket.triangles)
-%             tri1 = selected_bucket.triangles(n,:);
-%             tri2 = selected_bucket.triangles(n+1,:);
-%             tri3 = selected_bucket.triangles(n+2,:);
-            
-%             label = selected_bucket.x + selected_bucket.y;
-%             c = colors(mod(label, size(colors,1)) + 1);
-
-%             patch([tri1(1,1); tri2(1,1); tri3(1,1)], ...
-%                 [tri1(1,2); tri2(1,2); tri3(1,2)], ...
-%                 [tri1(1,3); tri2(1,3); tri3(1,3)], c);
-%         end
-        
-%     end
-% end
-
-%% ================================================
-%% Draw rails
-%% ================================================
-% for i = 1:size(ccp_pairs,1)
-%     line(ccp_pairs(i, [1,4]), ccp_pairs(i, [2,5]), ccp_pairs(i, [3,6]), 'Color','b','LineWidth',2,'LineStyle','-')
-% end
-
 % plot normal vector on top of ccpoints
-% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-%     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
-%     3, 'Color','b','LineWidth',1,'LineStyle','-');
+figure('Name', 'Normal Vector', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+    3, 'Color','b','LineWidth',1,'LineStyle','-');
 
 % % plot tangen vector on top of ccpoints
-% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-%     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-%     1, 'Color','r','LineWidth',1,'LineStyle','-');
+figure('Name', 'Tool Orientation Vector (Cross Product)', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
+    1, 'Color','r','LineWidth',1,'LineStyle','-');
 
 % plot extended tangen vector on top of ccpoints
 % quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
@@ -182,6 +164,14 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 %% ccpoints_data:
 %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2
 %% ================================================
+f = figure('Name', 'Simulation', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+
 ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
 ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
@@ -196,6 +186,8 @@ cylinder_end_1 = [];
 cylinder_end_2 = [];
 CL = 0;
 for i = 1:size(ccpoints_data,1)-1
+
+    set(0,'CurrentFigure',f);
 
     % line(ccpoints_data(i,[3 12]), ccpoints_data(i,[4 13]), ccpoints_data(i,[5 14]), 'Color','red','LineWidth',2,'LineStyle','-');
 
