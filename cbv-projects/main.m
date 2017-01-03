@@ -112,29 +112,47 @@ under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_poi
 totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3))
 invertedVolume = totalVolume - partVolume
 
+%% DEPRECATED
 %% ccpoints that bound the CBV part
-cbv_boundary_points = [];
-for i = 1:size(points_cloud,1)
-    for j = 1:size(points_cloud,2)
-        sl = [points_cloud(i,j,1) points_cloud(i,j,2)];
-        boundary_at_this_slicing_line = get_boundary_points_at(sl, intersection_points);
-        if (size(boundary_at_this_slicing_line,1)) > 2
-            %% it means under cbv
-            cbv_boundary_points = [cbv_boundary_points; boundary_at_this_slicing_line(2:3,1:3)];
+% cbv_boundary_points = [];
+% for i = 1:size(points_cloud,1)
+%     for j = 1:size(points_cloud,2)
+%         sl = [points_cloud(i,j,1) points_cloud(i,j,2)];
+%         boundary_at_this_slicing_line = get_boundary_points_at(sl, intersection_points);
+%         if (size(boundary_at_this_slicing_line,1)) > 2
+%             %% it means under cbv
+%             cbv_boundary_points = [cbv_boundary_points; boundary_at_this_slicing_line(2:3,1:3)];
+%         end
+%     end
+% end
+
+% %% Creates a Delaunay triangulation from a set of CBV ccpoints
+% dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
+% tri = dt(:,:);
+% cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
+%% END-OF-DEPRECATED
+
+
+%% ================================================
+%% Volume calculation: OBV
+%% ================================================
+obv = [];
+pc = unique(ccp(:,1:2), 'rows');
+for i = 1:size(pc, 1)
+    find_ccpoint = ccp(find(ccp(:,1) == pc(i,1) & ccp(:,2) == pc(i,2)), :);
+    if (isempty(find_ccpoint))
+        continue;
+    end
+    if (size(find_ccpoint,1) > 2 || size(find_ccpoint,1) < 2)
+        continue;
+    end
+    for j = 1:size(find_ccpoint,1)
+        if (find_ccpoint(j,3) < max_min(1,3) && find_ccpoint(j,3) > max_min(2,3))
+            obv = [obv; find_ccpoint(j,:); find_ccpoint(j,1:2) max_min(1,3)];
+            % find_ccpoint(j,:)
         end
     end
 end
-
-%% Creates a Delaunay triangulation from a set of CBV ccpoints
-dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
-tri = dt(:,:);
-cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
-
-
-%% ================================================
-%% Volume calculation: Part & CBV
-%% ================================================
-
 
 %% ================================================
 %% Volume calculation: Cut CBV
@@ -207,14 +225,15 @@ plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10)
 % trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 
 %% plot all roughing_points with cbv skewed orientation
-% figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% axis equal;
-% xlabel ( '--X axis--' );
-% ylabel ( '--Y axis--' );
-% zlabel ( '--Z axis--' );
-% hold on;
-% plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
+figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
+plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
 
 %% plot roughing_points orientation
 figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
@@ -243,6 +262,8 @@ xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
+
+% drawn = false;
 
 for i = 1:size(all_z,1)
     z = all_z(i);
@@ -278,6 +299,10 @@ for i = 1:size(all_z,1)
             tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
         cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
 
+        %% update last_cbv_point_at_this_z_y to follow tool_handle_origin_point(x,y)
+        last_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point(:,1:2);
+        cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 last_cbv_point_at_this_z_y(:,4:6) 0 0 1]];
+
         %% =================================================
         %% calculate cut cbv volume
         %% TODO: if two-sided cbv
@@ -286,24 +311,29 @@ for i = 1:size(all_z,1)
             first_index = indices(1);
             first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,4:6);
             last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
+            
             u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
             v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
 
             %% find angle between 2 vector (in radian)
-            angle = atan2(norm(cross(u,v)),dot(u,v))
-            angle_degree = angle / pi * 180
+            angle = atan2(norm(cross(u,v)),dot(u,v));
+            angle_degree = angle / pi * 180;
             
             %% cylinder part volume I = angle/2π * area * heigth
-            cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2))
+            cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2));
 
             %% cylinder part volume II = angle/2π * area * (tool length - stepover)
-            intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2))
+            intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2));
 
             %% get actual volume, without intersection
-            cbv_part_volume = cbv_part_volume - intersected_cbv_volume
+            cbv_part_volume = cbv_part_volume - intersected_cbv_volume;
             total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
         end
     end
+
+    % if (drawn) 
+    %     continue;
+    % end
 
     %% if two-sided cbv, separated by y = c line, pick random y = middle one
     y = (max_min(1,2) - max_min(2,2)) / 2;
@@ -334,9 +364,31 @@ for i = 1:size(all_z,1)
     trisurf(tri, cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
 
     % cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
+
+    % drawn = true;
 end
 
 total_cutting_cbv_volume
+
+
+%% ================================================
+%% plot obv
+%% ================================================
+figure('Name', 'OBV', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+
+dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
+tri = dt(:,:);
+obv_volume = stlVolume(obv', tri')
+
+trisurf(tri, obv(:,1), obv(:,2), obv(:,3));
+
+non_machinable_volume = invertedVolume - obv_volume - total_cutting_cbv_volume
 
 %% draw tool path
 % toolpath = [];
@@ -430,7 +482,7 @@ for i = 1:size(roughing_points,1)
     working_part = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
     trans1 = [0 0 0 1 0 0 0 1 0 0 0 1];
     trans2 = [0 0 0 1 0 0 0 1 0 0 0 1];
-    CL = coldetect(cylinder_tri, working_part, trans1, trans2)
+    CL = coldetect(cylinder_tri, working_part, trans1, trans2);
 end
 
 
