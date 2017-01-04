@@ -138,6 +138,8 @@ invertedVolume = totalVolume - partVolume
 %% ================================================
 obv = [];
 pc = unique(ccp(:,1:2), 'rows');
+max_point_cloud = max(pc);
+
 for i = 1:size(pc, 1)
     find_ccpoint = ccp(find(ccp(:,1) == pc(i,1) & ccp(:,2) == pc(i,2)), :);
     if (isempty(find_ccpoint))
@@ -149,7 +151,13 @@ for i = 1:size(pc, 1)
     for j = 1:size(find_ccpoint,1)
         if (find_ccpoint(j,3) < max_min(1,3) && find_ccpoint(j,3) > max_min(2,3))
             obv = [obv; find_ccpoint(j,:); find_ccpoint(j,1:2) max_min(1,3)];
-            % find_ccpoint(j,:)
+
+            if (pc(i,2) == max_point_cloud(2))
+                obv = [obv; find_ccpoint(j,1) max_min(1,2) find_ccpoint(j,3); find_ccpoint(j,1) max_min(1,2) max_min(1,3)];
+            end
+            if (pc(i,1) == max_point_cloud(1))
+                obv = [obv; max_min(1,1) find_ccpoint(j,2:3); max_min(1,1) find_ccpoint(j,2) max_min(1,3)];
+            end
         end
     end
 end
@@ -382,13 +390,14 @@ ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
 
-dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
+% dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
+dt = delaunayn(obv);
 tri = dt(:,:);
 obv_volume = stlVolume(obv', tri')
 
 trisurf(tri, obv(:,1), obv(:,2), obv(:,3));
 
-non_machinable_volume = invertedVolume - obv_volume - total_cutting_cbv_volume
+non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume)
 
 %% draw tool path
 % toolpath = [];
