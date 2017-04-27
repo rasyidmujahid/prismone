@@ -39,12 +39,6 @@ for i = 1:size(T,1)
     tricenter(i,:) = [centerX centerY centerZ];
 end
 
-% TRI1 = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
-% TRI2 = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
-% TRANS1 = [1 0 50 0 1 0 0 0 1 0 0 1];
-% TRANS2 = [1 0 0 0 1 0 0 0 1 0 0 1];
-% CL = coldetect(TRI1, TRI2, TRANS1, TRANS2)
-
 %% ================================================
 %% Roughing parameters
 %% ================================================
@@ -93,6 +87,8 @@ end
 
 %% ================================================
 %% Build ccpoint orientation
+%% roughing_points columns:
+%% || points_cloud x y z || skewed_points x1 y1 z1 || tool_orientation i j k
 %% ================================================
 
 roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
@@ -108,9 +104,9 @@ under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_poi
 %% ================================================
 %% Volume calculation: Part & CBV
 %% ================================================
-[partVolume, partArea] = stlVolume(V', T(:,1:3)')
-totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3))
-invertedVolume = totalVolume - partVolume
+[partVolume, partArea] = stlVolume(V', T(:,1:3)');
+totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3));
+invertedVolume = totalVolume - partVolume;
 
 %% DEPRECATED
 %% ccpoints that bound the CBV part
@@ -376,7 +372,7 @@ for i = 1:size(all_z,1)
     % drawn = true;
 end
 
-total_cutting_cbv_volume
+total_cutting_cbv_volume;
 
 
 %% ================================================
@@ -393,11 +389,11 @@ hold on;
 % dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
 dt = delaunayn(obv);
 tri = dt(:,:);
-obv_volume = stlVolume(obv', tri')
+obv_volume = stlVolume(obv', tri');
 
 trisurf(tri, obv(:,1), obv(:,2), obv(:,3));
 
-non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume)
+non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
 
 %% draw tool path
 % toolpath = [];
@@ -451,7 +447,7 @@ xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
-
+ 
 for i = 1:size(roughing_points,1)
 
     set(0,'CurrentFigure',f);
