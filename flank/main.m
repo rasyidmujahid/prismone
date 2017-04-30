@@ -287,13 +287,6 @@ for i = 1:size(ccpoints_data,1)-1
         %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
 
         %% taking feed direction vector as rotation axis, and θ = incremental angle.
-        
-        %% feed_direction = tangent x normal
-        % feed_direction = cross(ccpoints_data(i,9:11), ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8)))
-        
-        %% feed_direction = normal x tangent
-        % feed_direction = cross(ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8)), ccpoints_data(i,9:11))
-        %% or, it does the same
         feed_direction = ccpoints_data(i,15:17);
         
         %% rotation_matrix results 3x3 matrix
@@ -360,5 +353,8 @@ end
 
 % we have some issues:
 % FIXED 1. rotation doesnt work for some ccpoints. only works for inversed orientation.
-% 2. collision detection doesnt seem to work as expected. expected to be collided true, but it aint.
+% => was due to wrong cross product in build_tangent_normal function, which resulted wrong inversed tangent orientation. 
+% FIXED 2. collision detection doesnt seem to work as expected. expected to be collided true, but it aint.
+% => wrong cylinder re-draw. should also rotate normal vector to get correct adjustment as far as tool_radius
 % FIXED 3. rotation direction should be negative, means clockwise.
+% => no need. vrrotvec2mat works in righ-hand rule rotation
