@@ -50,14 +50,16 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
         end
 
         if ~isempty(next_ccpoint)
-            tangent = build_tangent_normal(normal, (next_ccpoint - ccpoint), to_reverse);
+            feed_direction = next_ccpoint - ccpoint;
+            tangent = build_tangent_normal(normal, feed_direction, to_reverse);
             
             %% reverse negative k in vector (i,j,k)
-            if tangent(3) < 0
-                tangent = -tangent;
-            end
+            % if tangent(3) < 0
+            %     tangent = -tangent;
+            % end
             
-            normals(i,9:11) = tangent / norm(tangent);
+            normals(i,9:11) = tangent / norm(tangent); 
+            normals(i,15:17) = feed_direction;
         end
     end
 end
@@ -97,7 +99,7 @@ end
 
 %% build_tangent_normal: cross product of orthogonal vector to given normal vector
 function tangent = build_tangent_normal(normal, orthogonal, to_reverse)
-    tangent = cross(orthogonal, normal);
+    tangent = cross(normal, orthogonal);
     if to_reverse
         tangent = -tangent;
     end

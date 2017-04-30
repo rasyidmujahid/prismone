@@ -154,6 +154,20 @@ quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
     1, 'Color','r','LineWidth',1,'LineStyle','-');
 
+
+% % plot feed direction on top of ccpoints
+figure('Name', 'Feed Direction Vector', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,15), ccpoints_data(:,16), ccpoints_data(:,17), ...
+    1, 'Color','r','LineWidth',1,'LineStyle','-');
+
+
 % plot extended tangen vector on top of ccpoints
 % quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
 %     extended_tangen_normal(:,1), extended_tangen_normal(:,2), extended_tangen_normal(:,3), ...
@@ -162,7 +176,7 @@ quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
 %% ================================================
 %% draw flank lines
 %% ccpoints_data:
-%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2
+%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
 %% ================================================
 f = figure('Name', 'Simulation', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
@@ -264,65 +278,87 @@ for i = 1:size(ccpoints_data,1)-1
     %% ================================
     iteration = 0;
     max_iteration = 10;
-    tetha = 2;
-    incremental_tetha = -60;
+    tetha = 30;
+    incremental_tetha = 2;
     r = []; %% working rotation matrix
     while (CL > 0) && (iteration < max_iteration)
 
         %% ccpoints_data:
-        %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2
+        %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
 
-        %% taking feed direction vector as rotation axis, and θ = incremental 1 degree.
+        %% taking feed direction vector as rotation axis, and θ = incremental angle.
+        
         %% feed_direction = tangent x normal
-        feed_direction = cross(ccpoints_data(i,9:11), ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8)));
+        % feed_direction = cross(ccpoints_data(i,9:11), ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8)))
+        
+        %% feed_direction = normal x tangent
+        % feed_direction = cross(ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8)), ccpoints_data(i,9:11))
+        %% or, it does the same
+        feed_direction = ccpoints_data(i,15:17);
+        
+        %% rotation_matrix results 3x3 matrix
         rotation_matrix = vrrotvec2mat([feed_direction deg2rad(tetha)]);
         r = rotation_matrix;
+        %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+        %% [r1 r2 r3 0]
+        %% [r4 r5 r6 0]
+        %% [r7 r8 r9 0]
+        %% [0  0  0  1]
 
-        %% rotation_matrix results 3x3 matrix
-        %% TRANS argument:
-        %% (e1, ..., e12)
+        %% TRANS parameters
         %% [ e4  e5  e6 e1]
         %% [ e7  e8  e9 e2]
         %% [e10 e11 e12 e3]
         %% [  0   0   0  1]
+        %% adjust to trans1 = (e1, ..., e12)
         trans1 = [0 0 0 r(1,:) r(2,:) r(3,:)];
         CL = coldetect(cylinder_tri, working_part, trans1, trans2);
 
         tetha = tetha + incremental_tetha;
-        iteration = iteration + 1;
+        iteration = iteration + 1
     end
 
     %% print last tetha
     % tetha
 
     %% if gouging avoidance succeeded, mark cylinder as green
-    if ~isempty(r) && CL == 0
+    if ~isempty(r)
 
         delete(cylinder_handle);
         delete(cylinder_end_1);
         delete(cylinder_end_2);
 
         %% new tangent orientation
-        r
+        % r %% display 'r' rotation_matrix
         tool_orientation_before_gouging_avoidance = ccpoints_data(i,9:11)
-        ccpoints_data(i,9:11) = ccpoints_data(i,9:11) * r;
+        %% rotate tangent vector by rotation matrix r
+        %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
+        %% xy' = r*xy where xy is column vector.
+        ccpoints_data(i,9:11) = (r * ccpoints_data(i,9:11)')';
         tool_orientation_after_vcollide = ccpoints_data(i,9:11)
 
         %% adjust points x2 y2 z2 following new tangent orientation
         ccpoints_data(i,12:14) = ccpoints_data(i,3:5) + tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
 
-        % Redraw after free gouging trial
+        %% also do normal vector orientation
+        ccpoints_data(i,6:8) = (r * ccpoints_data(i,6:8)')';
+
+        %% Redraw after free gouging trial
         p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
         p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
         [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
 
-        % mark cylinder as green
-        set(cylinder_handle, 'FaceColor', 'g');
+        %% if free gouging, mark cylinder as green, otherwise keep red
+        if CL == 0
+            set(cylinder_handle, 'FaceColor', 'g');
+        else
+            set(cylinder_handle, 'FaceColor', 'r');
+        end
         drawnow;
     end
 end
 
 % we have some issues:
-% 1. rotation doesnt work for some ccpoints. only works for inversed orientation.
+% FIXED 1. rotation doesnt work for some ccpoints. only works for inversed orientation.
 % 2. collision detection doesnt seem to work as expected. expected to be collided true, but it aint.
-% 3. rotation direction should be negative, means clockwise.
+% FIXED 3. rotation direction should be negative, means clockwise.
