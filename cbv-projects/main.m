@@ -455,9 +455,9 @@ for i = 1:size(roughing_points,1)
         continue;
     end
 
-    if roughing_points(i,3) < 60
-        continue;
-    end
+    % if roughing_points(i,3) < 60
+    %    continue;
+    % end
 
     set(0,'CurrentFigure',f);
     
