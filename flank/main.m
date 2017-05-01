@@ -277,9 +277,9 @@ for i = 1:size(ccpoints_data,1)-1
     %% gouging avoidance
     %% ================================
     iteration = 0;
-    max_iteration = 10;
-    tetha = 30;
-    incremental_tetha = 2;
+    max_iteration = 20;
+    tetha = 0.01;
+    incremental_tetha = 0.01;
     r = []; %% working rotation matrix
     while (CL > 0) && (iteration < max_iteration)
 
