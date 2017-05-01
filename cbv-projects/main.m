@@ -48,7 +48,7 @@ density = 10; % density determines how wide points cloud
 horizontal_stepover = density;
 vertical_stepover   = 10;
 tool_length = 50;
-tool_radius = 4;
+tool_radius = 8;
 offset = [10 10 10];
 effective_tool_length = 20;
 
@@ -450,23 +450,24 @@ hold on;
  
 for i = 1:size(roughing_points,1)
 
-    set(0,'CurrentFigure',f);
-
-    %% mark gouging, left the cylinder drawn
-    if CL == 0
-        delete(cylinder_handle);
-        delete(cylinder_end_1);
-        delete(cylinder_end_2);
-    else
-        set(cylinder_handle, 'FaceColor', 'r');
+    %% skip if not cbv
+    if isequal(roughing_points(i,4:6), [0 0 0])
+        continue;
     end
+
+    if roughing_points(i,3) < 60
+        continue;
+    end
+
+    set(0,'CurrentFigure',f);
     
+    %% build endpoints for cylinder
     if isequal(roughing_points(i,4:6), [0 0 0])
         p1 = roughing_points(i,1:3);
         p2 = roughing_points(i,1:3) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));
     else
         p1 = roughing_points(i,4:6);
-        p2 = roughing_points(i,4:6) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));    
+        p2 = roughing_points(i,4:6) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));
     end
     
     [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
@@ -488,9 +489,89 @@ for i = 1:size(roughing_points,1)
     trans1 = [0 0 0 1 0 0 0 1 0 0 0 1];
     trans2 = [0 0 0 1 0 0 0 1 0 0 0 1];
     CL = coldetect(cylinder_tri, working_part, trans1, trans2);
+
+    %% ================================================
+    %% Gouging avoidance
+    %% ================================================
+    iteration = 0;
+    max_iteration = 140;
+    tetha = 0.5;
+    incremental_tetha = 0.5;
+    r = []; %% working rotation matrix
+
+    while (CL > 0) && (iteration < max_iteration)
+        % always taking rx=[0 1 0] as rotation axis
+        rotation_matrix = vrrotvec2mat([0 1 0 deg2rad(tetha)]);
+        r = rotation_matrix;
+
+        %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+        %% [r1 r2 r3 0]
+        %% [r4 r5 r6 0]
+        %% [r7 r8 r9 0]
+        %% [0  0  0  1]
+
+        %% TRANS parameters
+        %% [ e4  e5  e6 e1]
+        %% [ e7  e8  e9 e2]
+        %% [e10 e11 e12 e3]
+        %% [  0   0   0  1]
+        %% adjust to trans1 = (e1, ..., e12)
+        % trans1 = [0 0 0 r(1,:) r(2,:) r(3,:)];
+
+        %% workaround: trans param doesnt work, do our own rotate then coldetect.
+        %% ==============================================================
+        delete(cylinder_handle);
+        delete(cylinder_end_1);
+        delete(cylinder_end_2);
+
+        roughing_points(i,7:9) = (r * roughing_points(i,7:9)')';
+
+        %% redraw cylinder after free gouging trial
+        p1 = roughing_points(i,4:6);
+        p2 = roughing_points(i,4:6) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));
+
+        [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+        tri = surf2patch(cylinder_handle, 'triangles');
+        cylinder_tri = [tri.vertices(tri.faces(:,1),:) tri.vertices(tri.faces(:,2),:) tri.vertices(tri.faces(:,3),:)];
+        working_part = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
+        %% ==============================================================
+
+        CL = coldetect(cylinder_tri, working_part, trans1, trans2)
+
+        tetha = tetha + incremental_tetha
+        iteration = iteration + 1
+    end
+
+    %% mark gouging, left the cylinder drawn
+    % if CL == 0
+    %     delete(cylinder_handle);
+    %     delete(cylinder_end_1);
+    %     delete(cylinder_end_2);
+    % else
+    %     set(cylinder_handle, 'FaceColor', 'r');
+    %     drawnow;
+    % end
+
+    % if ~isempty(r)
+        
+    %     %% new tool orientation
+    %     %% rotate tangent vector by rotation matrix r
+    %     %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
+    %     %% [xy'] = [r]*[xy] where [xy] is column vector.
+    %     roughing_points(i,7:9) = (r * roughing_points(i,7:9)')';
+
+    %     %% redraw cylinder after free gouging trial
+    %     p1 = roughing_points(i,4:6);
+    %     p2 = roughing_points(i,4:6) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));
+
+    %     [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+
+    %     %% if free gouging, mark cylinder as green, otherwise keep red
+        if CL == 0
+            set(cylinder_handle, 'FaceColor', 'g');
+        else
+            set(cylinder_handle, 'FaceColor', 'r');
+        end
+        drawnow;
+    % end
 end
-
-
-%% ================================================
-%% Gouging avoidance
-%% ================================================
