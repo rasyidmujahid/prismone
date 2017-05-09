@@ -173,263 +173,263 @@ X = V(:, 1);
 Y = V(:, 2);
 Z = V(:, 3);
 
-%% plot normal vector along with triangle surface
-% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
+% %% plot normal vector along with triangle surface
+% % quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
-%% plot points cloud
-figure('Name', 'Points Cloud & Vertical Slices', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-
-plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'm.', 'MarkerSize', 5)
-
-%% draw vertical slice
-for i = 1:size(points_cloud, 1)
-    for j = 1:size(points_cloud, 2)
-        x = points_cloud(i,j,1);
-        y = points_cloud(i,j,2);
-        z = points_cloud(i,j,3);
-        z_max = max_min(1,3);
-        line([x; x], [y; y], [z; z_max], 'Color','b','LineWidth',1,'LineStyle','-');
-    end
-end
-
-%% plot cc points/intersection points/boundary points
-figure('Name', 'Intersection Points (Boundary Points)', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
-
-%% plot cbv points
-figure('Name', 'CBV Points', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
-
-%% plot cbv volume part
-% figure('Name', 'CBV Volume Part', 'NumberTitle', 'off');
+% %% plot points cloud
+% figure('Name', 'Points Cloud & Vertical Slices', 'NumberTitle', 'off');
 % trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 % axis equal;
 % xlabel ( '--X axis--' );
 % ylabel ( '--Y axis--' );
 % zlabel ( '--Z axis--' );
 % hold on;
-% trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 
-%% plot all roughing_points with cbv skewed orientation
-figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
-plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
+% plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'm.', 'MarkerSize', 5)
 
-%% plot roughing_points orientation
-figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
-    roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
-    10, 'Color','r','LineWidth',1,'LineStyle','-' );
-
-%% ================================================
-%% plot cutting cbv
-%% ================================================
-all_z = unique(roughing_points(:,3));
-all_y = unique(roughing_points(:,2));
-
-total_cutting_cbv_volume = 0;
-
-figure('Name', 'CBV Cut', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-
-% drawn = false;
-
-for i = 1:size(all_z,1)
-    z = all_z(i);
-    indices = find_rows_in_matrix(z, roughing_points(:,3));
-
-    roughing_points_at_this_z = roughing_points(indices,:);
-    cbv_points_at_this_z = [];
-    for j = 1:size(roughing_points_at_this_z,1)
-        if (~isequal(roughing_points_at_this_z(j,7:9), [0 0 100]))
-            %% find all cbv points at this z : roughing points that its orientation is not skewed
-            cbv_points_at_this_z = [cbv_points_at_this_z; roughing_points_at_this_z(j,:)];
-        end 
-    end
-    
-    if (isempty(cbv_points_at_this_z))
-        continue;
-    end
-
-    for j = 1:size(all_y,1)
-        y = all_y(j);
-        indices = find_rows_in_matrix(y, cbv_points_at_this_z(:,2));
-
-        if (isempty(indices))
-            % disp(['y: ', num2str(y)]);
-            % disp(['z: ', num2str(z)]);
-            continue;
-        end
-
-        %% add a new point where the tool-handle comes from
-        last_index = indices(end);
-        last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
-        tool_handle_origin_point = last_cbv_point_at_this_z_y(:,4:6) + ...
-            tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
-        cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
-
-        %% update last_cbv_point_at_this_z_y to follow tool_handle_origin_point(x,y)
-        last_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point(:,1:2);
-        cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 last_cbv_point_at_this_z_y(:,4:6) 0 0 1]];
-
-        %% =================================================
-        %% calculate cut cbv volume
-        %% TODO: if two-sided cbv
-        %% =================================================
-        if (j == 1)
-            first_index = indices(1);
-            first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,4:6);
-            last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
-            
-            u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
-            v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
-
-            %% find angle between 2 vector (in radian)
-            angle = atan2(norm(cross(u,v)),dot(u,v));
-            angle_degree = angle / pi * 180;
-            
-            %% cylinder part volume I = angle/2π * area * heigth
-            cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2));
-
-            %% cylinder part volume II = angle/2π * area * (tool length - stepover)
-            intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2));
-
-            %% get actual volume, without intersection
-            cbv_part_volume = cbv_part_volume - intersected_cbv_volume;
-            total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
-        end
-    end
-
-    % if (drawn) 
-    %     continue;
-    % end
-
-    %% if two-sided cbv, separated by y = c line, pick random y = middle one
-    y = (max_min(1,2) - max_min(2,2)) / 2;
-    cbv_points_before_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) < y),:);
-    cbv_points_after_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) >= y),:);
-
-    % dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
-    % tri = dt(:,:);
-
-    %% before x
-    dt = DelaunayTri(cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
-    tri = dt(:,:);
-
-    if isempty(tri)
-        continue;
-    end
-
-    trisurf(tri, cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
-
-    %% after x
-    dt = DelaunayTri(cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
-    tri = dt(:,:);
-
-    if isempty(tri)
-        continue;
-    end
-
-    trisurf(tri, cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
-
-    % cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
-
-    % drawn = true;
-end
-
-total_cutting_cbv_volume;
-
-
-%% ================================================
-%% plot obv
-%% ================================================
-figure('Name', 'OBV', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-
-% dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
-dt = delaunayn(obv);
-tri = dt(:,:);
-obv_volume = stlVolume(obv', tri');
-
-trisurf(tri, obv(:,1), obv(:,2), obv(:,3));
-
-non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
-
-%% draw tool path
-% toolpath = [];
-
-% z = flipud(unique(roughing_points(:,6)));
-% direction = NaN;
-
-% direction_type = 1;
-
-% for i = 1:size(z)
-%     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
-
-%     if mod(i,2) == 0
-%         y = unique(roughing_points_at_z(:,direction_type));
-%     else
-%         y = flipud(unique(roughing_points_at_z(:,direction_type)));
-%     end
-
-%     for j = 1:size(y)
-%         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
-
-%         if isnan(direction)
-%             direction = mod(j,2) == 0;
-%         end
-        
-%         if direction
-%             toolpath = [toolpath; roughing_points_at_y];
-%         else
-%             toolpath = [toolpath; flipud(roughing_points_at_y)];
-%         end
-        
-%         direction = ~direction;
+% %% draw vertical slice
+% for i = 1:size(points_cloud, 1)
+%     for j = 1:size(points_cloud, 2)
+%         x = points_cloud(i,j,1);
+%         y = points_cloud(i,j,2);
+%         z = points_cloud(i,j,3);
+%         z_max = max_min(1,3);
+%         line([x; x], [y; y], [z; z_max], 'Color','b','LineWidth',1,'LineStyle','-');
 %     end
 % end
 
-% line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
+% %% plot cc points/intersection points/boundary points
+% figure('Name', 'Intersection Points (Boundary Points)', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+% plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
+
+% %% plot cbv points
+% figure('Name', 'CBV Points', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+% plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
+
+% %% plot cbv volume part
+% % figure('Name', 'CBV Volume Part', 'NumberTitle', 'off');
+% % trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% % axis equal;
+% % xlabel ( '--X axis--' );
+% % ylabel ( '--Y axis--' );
+% % zlabel ( '--Z axis--' );
+% % hold on;
+% % trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
+
+% %% plot all roughing_points with cbv skewed orientation
+% figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+% plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
+% plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
+
+% %% plot roughing_points orientation
+% figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+% quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+%     roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
+%     10, 'Color','r','LineWidth',1,'LineStyle','-' );
+
+% %% ================================================
+% %% plot cutting cbv
+% %% ================================================
+% all_z = unique(roughing_points(:,3));
+% all_y = unique(roughing_points(:,2));
+
+% total_cutting_cbv_volume = 0;
+
+% figure('Name', 'CBV Cut', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+
+% % drawn = false;
+
+% for i = 1:size(all_z,1)
+%     z = all_z(i);
+%     indices = find_rows_in_matrix(z, roughing_points(:,3));
+
+%     roughing_points_at_this_z = roughing_points(indices,:);
+%     cbv_points_at_this_z = [];
+%     for j = 1:size(roughing_points_at_this_z,1)
+%         if (~isequal(roughing_points_at_this_z(j,7:9), [0 0 100]))
+%             %% find all cbv points at this z : roughing points that its orientation is not skewed
+%             cbv_points_at_this_z = [cbv_points_at_this_z; roughing_points_at_this_z(j,:)];
+%         end 
+%     end
+    
+%     if (isempty(cbv_points_at_this_z))
+%         continue;
+%     end
+
+%     for j = 1:size(all_y,1)
+%         y = all_y(j);
+%         indices = find_rows_in_matrix(y, cbv_points_at_this_z(:,2));
+
+%         if (isempty(indices))
+%             % disp(['y: ', num2str(y)]);
+%             % disp(['z: ', num2str(z)]);
+%             continue;
+%         end
+
+%         %% add a new point where the tool-handle comes from
+%         last_index = indices(end);
+%         last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
+%         tool_handle_origin_point = last_cbv_point_at_this_z_y(:,4:6) + ...
+%             tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
+%         cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
+
+%         %% update last_cbv_point_at_this_z_y to follow tool_handle_origin_point(x,y)
+%         last_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point(:,1:2);
+%         cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 last_cbv_point_at_this_z_y(:,4:6) 0 0 1]];
+
+%         %% =================================================
+%         %% calculate cut cbv volume
+%         %% TODO: if two-sided cbv
+%         %% =================================================
+%         if (j == 1)
+%             first_index = indices(1);
+%             first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,4:6);
+%             last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
+            
+%             u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
+%             v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
+
+%             %% find angle between 2 vector (in radian)
+%             angle = atan2(norm(cross(u,v)),dot(u,v));
+%             angle_degree = angle / pi * 180;
+            
+%             %% cylinder part volume I = angle/2π * area * heigth
+%             cbv_part_volume = angle / (2 * pi) * (pi * tool_length ^ 2) * (max_min(1,2) - max_min(2,2));
+
+%             %% cylinder part volume II = angle/2π * area * (tool length - stepover)
+%             intersected_cbv_volume = angle / (2 * pi) * (pi * (tool_length - vertical_stepover) ^ 2) * (max_min(1,2) - max_min(2,2));
+
+%             %% get actual volume, without intersection
+%             cbv_part_volume = cbv_part_volume - intersected_cbv_volume;
+%             total_cutting_cbv_volume = total_cutting_cbv_volume + cbv_part_volume;
+%         end
+%     end
+
+%     % if (drawn) 
+%     %     continue;
+%     % end
+
+%     %% if two-sided cbv, separated by y = c line, pick random y = middle one
+%     y = (max_min(1,2) - max_min(2,2)) / 2;
+%     cbv_points_before_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) < y),:);
+%     cbv_points_after_y = cbv_points_at_this_z(find(cbv_points_at_this_z(:,5) >= y),:);
+
+%     % dt = DelaunayTri(cbv_points_at_this_z(:,4), cbv_points_at_this_z(:,5), cbv_points_at_this_z(:,6));
+%     % tri = dt(:,:);
+
+%     %% before x
+%     dt = DelaunayTri(cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
+%     tri = dt(:,:);
+
+%     if isempty(tri)
+%         continue;
+%     end
+
+%     trisurf(tri, cbv_points_before_y(:,4), cbv_points_before_y(:,5), cbv_points_before_y(:,6));
+
+%     %% after x
+%     dt = DelaunayTri(cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
+%     tri = dt(:,:);
+
+%     if isempty(tri)
+%         continue;
+%     end
+
+%     trisurf(tri, cbv_points_after_y(:,4), cbv_points_after_y(:,5), cbv_points_after_y(:,6));
+
+%     % cbv_part_volume__ = stlVolume(cbv_points_at_this_z(:,4:6)', tri')
+
+%     % drawn = true;
+% end
+
+% total_cutting_cbv_volume;
+
+
+% %% ================================================
+% %% plot obv
+% %% ================================================
+% figure('Name', 'OBV', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+
+% % dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
+% dt = delaunayn(obv);
+% tri = dt(:,:);
+% obv_volume = stlVolume(obv', tri');
+
+% trisurf(tri, obv(:,1), obv(:,2), obv(:,3));
+
+% non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
+
+% %% draw tool path
+% % toolpath = [];
+
+% % z = flipud(unique(roughing_points(:,6)));
+% % direction = NaN;
+
+% % direction_type = 1;
+
+% % for i = 1:size(z)
+% %     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
+
+% %     if mod(i,2) == 0
+% %         y = unique(roughing_points_at_z(:,direction_type));
+% %     else
+% %         y = flipud(unique(roughing_points_at_z(:,direction_type)));
+% %     end
+
+% %     for j = 1:size(y)
+% %         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+
+% %         if isnan(direction)
+% %             direction = mod(j,2) == 0;
+% %         end
+        
+% %         if direction
+% %             toolpath = [toolpath; roughing_points_at_y];
+% %         else
+% %             toolpath = [toolpath; flipud(roughing_points_at_y)];
+% %         end
+        
+% %         direction = ~direction;
+% %     end
+% % end
+
+% % line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
 
 %% ================================================
 %% Toolpath simulation + gouging detection
@@ -455,7 +455,7 @@ for i = 1:size(roughing_points,1)
         continue;
     end
 
-    % if roughing_points(i,3) < 60
+    % if roughing_points(i,3) < 40
     %    continue;
     % end
 
@@ -494,29 +494,50 @@ for i = 1:size(roughing_points,1)
     %% Gouging avoidance
     %% ================================================
     iteration = 0;
-    max_iteration = 140;
-    tetha = 0.5;
-    incremental_tetha = 0.5;
+    max_iteration = 45;
+
+    tetha = 3; %% in degree
+    incremental_tetha = 3;
     r = []; %% working rotation matrix
+    max_tetha = 45; 
 
-    while (CL > 0) && (iteration < max_iteration)
-        % always taking rx=[0 1 0] as rotation axis
-        rotation_matrix = vrrotvec2mat([0 1 0 deg2rad(tetha)]);
-        r = rotation_matrix;
+    translate_x = 1;
+    step_x = 1;
+    trx = []; %% working translation matrix
 
-        %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
-        %% [r1 r2 r3 0]
-        %% [r4 r5 r6 0]
-        %% [r7 r8 r9 0]
-        %% [0  0  0  1]
+    while (CL > 0) && (iteration < max_iteration) && (tetha < max_tetha)
 
         %% TRANS parameters
         %% [ e4  e5  e6 e1]
         %% [ e7  e8  e9 e2]
         %% [e10 e11 e12 e3]
         %% [  0   0   0  1]
+
+        %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+        %% rotation matrix
+        %% [r1 r2 r3 0]
+        %% [r4 r5 r6 0]
+        %% [r7 r8 r9 0]
+        %% [0  0  0  1]
+        % always taking rx=[0 1 0] as rotation axis
+        rotation_matrix = vrrotvec2mat([0 1 0 deg2rad(tetha)]);
+        r = rotation_matrix;
+
+        %% translation matrix, move by step_x
+        %% [tx ty tz]
+        %% tx = translate_x; ty = tz = 0;
+        %% 
+        %% [1 0 0 tx]
+        %% [0 1 0 ty]
+        %% [0 0 1 tz]
+        %% [0 0 0 1 ]
+        trx = [translate_x 0 0];
+
         %% adjust to trans1 = (e1, ..., e12)
-        % trans1 = [0 0 0 r(1,:) r(2,:) r(3,:)];
+        % trans1 = [
+        %     0 0 0 r(1,:) r(2,:) r(3,:)
+        %     trx 1 0 0 0 1 0 0 0 1
+        % ];
 
         %% workaround: trans param doesnt work, do our own rotate then coldetect.
         %% ==============================================================
@@ -525,6 +546,7 @@ for i = 1:size(roughing_points,1)
         delete(cylinder_end_2);
 
         roughing_points(i,7:9) = (r * roughing_points(i,7:9)')';
+        roughing_points(i,4:6) = roughing_points(i,4:6) + trx;
 
         %% redraw cylinder after free gouging trial
         p1 = roughing_points(i,4:6);
@@ -536,29 +558,38 @@ for i = 1:size(roughing_points,1)
         working_part = [V(T(:,1),:) V(T(:,2),:) V(T(:,3),:)];
         %% ==============================================================
 
+        % CL = coldetect(cylinder_tri, working_part, trans1, repmat(trans2,2,1))
         CL = coldetect(cylinder_tri, working_part, trans1, trans2)
 
         tetha = tetha + incremental_tetha
+        translate_x = translate_x + step_x
         iteration = iteration + 1
     end
 
-    %% mark gouging, left the cylinder drawn
-    % if CL == 0
+    % mark gouging, left the cylinder drawn
+    if CL == 0
+        % delete(cylinder_handle);
+        % delete(cylinder_end_1);
+        % delete(cylinder_end_2);
+        set(cylinder_handle, 'FaceColor', 'g');
+    else
+        set(cylinder_handle, 'FaceColor', 'r');
+        drawnow;
+    end
+
+    %% unmark following block if not using workaround part
+    % if ~isempty(r)
+
     %     delete(cylinder_handle);
     %     delete(cylinder_end_1);
     %     delete(cylinder_end_2);
-    % else
-    %     set(cylinder_handle, 'FaceColor', 'r');
-    %     drawnow;
-    % end
-
-    % if ~isempty(r)
         
     %     %% new tool orientation
     %     %% rotate tangent vector by rotation matrix r
     %     %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
     %     %% [xy'] = [r]*[xy] where [xy] is column vector.
     %     roughing_points(i,7:9) = (r * roughing_points(i,7:9)')';
+    %     roughing_points(i,4:6) = roughing_points(i,4:6) + trx;
 
     %     %% redraw cylinder after free gouging trial
     %     p1 = roughing_points(i,4:6);
@@ -567,11 +598,11 @@ for i = 1:size(roughing_points,1)
     %     [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
 
     %     %% if free gouging, mark cylinder as green, otherwise keep red
-        if CL == 0
-            set(cylinder_handle, 'FaceColor', 'g');
-        else
-            set(cylinder_handle, 'FaceColor', 'r');
-        end
-        drawnow;
+    %     if CL == 0
+    %         set(cylinder_handle, 'FaceColor', 'g');
+    %     else
+    %         set(cylinder_handle, 'FaceColor', 'r');
+    %     end
+    %     drawnow;
     % end
 end
