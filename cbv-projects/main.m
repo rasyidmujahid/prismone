@@ -2,11 +2,14 @@
 %% Read STL file
 %% ================================================
 
-% folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
+folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
 % filename = 'coba3';
+% filename = 'coba7';
+% filename = 'obstacle';
+filename = 'poket milling';
 
-folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-filename = 'coba kontur';
+% folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
+% filename = 'coba kontur';
 
 
 stlpath = strcat(folder, '/', filename, '.txt');
@@ -49,7 +52,7 @@ density = 10; % density determines how wide points cloud
               % following this density.
 horizontal_stepover = density;
 vertical_stepover   = 10;
-tool_length = 50;
+tool_length = 80;
 tool_radius = 8;
 offset = [10 10 10];
 effective_tool_length = 20;
@@ -445,7 +448,7 @@ cylinder_end_2 = [];
 CL = 0;
 
 f = figure('Name', 'Simulation', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Inter' );
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
@@ -498,15 +501,15 @@ for i = 1:size(roughing_points,1)
     %% Gouging avoidance
     %% ================================================
     iteration = 0;
-    max_iteration = 45;
+    max_iteration = 90;
 
     tetha = 3; %% in degree
     incremental_tetha = 3;
     r = []; %% working rotation matrix
-    max_tetha = 45; 
+    max_tetha = 30; 
 
     translate_to = 1;
-    translate_step = 1;
+    translate_step = 2;
     trx = []; %% working translation matrix
 
     %% rotation direction follows tool orientation
@@ -515,8 +518,11 @@ for i = 1:size(roughing_points,1)
     elseif roughing_points(i,8) == 0 % if j = 0, then rotate by Y-axis
         rotation_axis = [0 1 0]
     end
+
+    %% save initial tool orientation
+    original_tool_orientation = roughing_points(i,7:9);
         
-    while (CL > 0) && (iteration < max_iteration) && (tetha < max_tetha)
+    while (CL > 0) && (iteration < max_iteration) % && (tetha < max_tetha)
 
         %% TRANS parameters
         %% [ e4  e5  e6 e1]
@@ -535,28 +541,6 @@ for i = 1:size(roughing_points,1)
         rotation_matrix = vrrotvec2mat([rotation_axis deg2rad(tetha)]);
         r = rotation_matrix;
 
-        %% translation matrix, move by translate_step
-        %% [tx ty tz]
-        %% tx = translate_to; ty = tz = 0;
-        %% 
-        %% [1 0 0 tx]
-        %% [0 1 0 ty]
-        %% [0 0 1 tz]
-        %% [0 0 0 1 ]
-        if rotation_axis == [0 1 0]
-            if roughing_points(i,7) > 0
-                trx = [translate_step 0 0];
-            else
-                trx = [-translate_step 0 0];
-            end
-        elseif rotation_axis == [1 0 0]
-            if roughing_points(i,8) > 0
-                trx = [0 translate_step 0];
-            else
-                trx = [0 -translate_step 0];
-            end
-        end
-
         %% adjust to trans1 = (e1, ..., e12)
         % trans1 = [
         %     0 0 0 r(1,:) r(2,:) r(3,:)
@@ -570,7 +554,6 @@ for i = 1:size(roughing_points,1)
         delete(cylinder_end_2);
 
         roughing_points(i,7:9) = (r * roughing_points(i,7:9)')';
-        roughing_points(i,4:6) = roughing_points(i,4:6) + trx;
 
         %% redraw cylinder after free gouging trial
         p1 = roughing_points(i,4:6);
@@ -586,7 +569,38 @@ for i = 1:size(roughing_points,1)
         CL = coldetect(cylinder_tri, working_part, trans1, trans2)
 
         tetha = tetha + incremental_tetha
-        translate_to = translate_to + translate_step
+        % translate_to = translate_to + translate_step
+
+        if tetha >= max_tetha
+
+            %% set back to initial theta
+            tetha = 3;
+            roughing_points(i,7:9) = original_tool_orientation;
+
+            %% translation matrix, move by translate_step
+            %% [tx ty tz]
+            %% tx = translate_to; ty = tz = 0;
+            %% 
+            %% [1 0 0 tx]
+            %% [0 1 0 ty]
+            %% [0 0 1 tz]
+            %% [0 0 0 1 ]
+            if rotation_axis == [0 1 0]
+                if roughing_points(i,7) > 0
+                    trx = [translate_step 0 0];
+                else
+                    trx = [-translate_step 0 0];
+                end
+            elseif rotation_axis == [1 0 0]
+                if roughing_points(i,8) > 0
+                    trx = [0 translate_step 0];
+                else
+                    trx = [0 -translate_step 0];
+                end
+            end
+            roughing_points(i,4:6) = roughing_points(i,4:6) + trx;            
+        end
+
         iteration = iteration + 1
     end
 
