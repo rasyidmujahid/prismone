@@ -93,7 +93,8 @@ end
 %% skewed_orientation: build orientation vector from @from point towards @to
 function [new_point, orientation] = skewed_orientation(from, to, virtual_tool_length)
 	distance = pdist([from; to]);
-	new_point = from + (1 - virtual_tool_length / distance) * (to - from);
+	% new_point = from + (1 - virtual_tool_length / distance) * (to - from);
+	new_point = from;
 	orientation = to - from;
 end
 
