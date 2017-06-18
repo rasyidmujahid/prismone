@@ -69,6 +69,7 @@ function points_with_orientation = tool_orientation(points, boundary_points, ver
 				end
 			end
 		else
+			points_with_orientation(i, 4:6) = points_with_orientation(i, 1:3);
 			orientation = [0 0 100];
         end
         points_with_orientation(i, 7:9) = orientation + [0 0 0];

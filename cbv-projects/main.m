@@ -3,10 +3,10 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
-% filename = 'coba3';
+filename = 'coba3';
 % filename = 'coba7';
 % filename = 'obstacle';
-filename = 'poket milling';
+% filename = 'poket milling';
 
 % folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
 % filename = 'coba kontur';
@@ -458,9 +458,9 @@ hold on;
 for i = 1:size(roughing_points,1)
 
     %% skip if not cbv
-    if isequal(roughing_points(i,4:6), [0 0 0])
-        continue;
-    end
+    % if isequal(roughing_points(i,7:9), [0 0 100])
+    %     continue;
+    % end
 
     % if roughing_points(i,3) < 40
     %    continue;
@@ -469,7 +469,7 @@ for i = 1:size(roughing_points,1)
     set(0,'CurrentFigure',f);
     
     %% build endpoints for cylinder
-    if isequal(roughing_points(i,4:6), [0 0 0])
+    if isequal(roughing_points(i,7:9), [0 0 100])
         p1 = roughing_points(i,1:3);
         p2 = roughing_points(i,1:3) + tool_length * roughing_points(i,7:9) / norm(roughing_points(i,7:9));
     else
@@ -513,7 +513,10 @@ for i = 1:size(roughing_points,1)
     trx = []; %% working translation matrix
 
     %% rotation direction follows tool orientation
-    if roughing_points(i,7) == 0 % if i = 0, then rotate by X-axis
+    if roughing_points(i,7:9) == [0 0 100]
+        %% do nothing
+        rotation_axis = [0 0 0]
+    elseif roughing_points(i,7) == 0 % if i = 0, then rotate by X-axis
         rotation_axis = [1 0 0]
     elseif roughing_points(i,8) == 0 % if j = 0, then rotate by Y-axis
         rotation_axis = [0 1 0]
@@ -523,6 +526,10 @@ for i = 1:size(roughing_points,1)
     original_tool_orientation = roughing_points(i,7:9);
         
     while (CL > 0) && (iteration < max_iteration) % && (tetha < max_tetha)
+
+        if rotation_axis == [0 0 0]
+            break;
+        end
 
         %% TRANS parameters
         %% [ e4  e5  e6 e1]
