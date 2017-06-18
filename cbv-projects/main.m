@@ -2,10 +2,12 @@
 %% Read STL file
 %% ================================================
 
+% folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
+% filename = 'coba3';
+
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-% filename = 'coba7';
 filename = 'coba kontur';
-% filename = 'bentuk A';
+
 
 stlpath = strcat(folder, '/', filename, '.txt');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -208,15 +210,15 @@ Z = V(:, 3);
 % hold on;
 % plot3(ccp(:,1), ccp(:,2), ccp(:,3), 'r.', 'MarkerSize', 10);
 
-% %% plot cbv points
-% figure('Name', 'CBV Points', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% axis equal;
-% xlabel ( '--X axis--' );
-% ylabel ( '--Y axis--' );
-% zlabel ( '--Z axis--' );
-% hold on;
-% plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
+%% plot cbv points
+figure('Name', 'CBV Points', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
 
 % %% plot cbv volume part
 % % figure('Name', 'CBV Volume Part', 'NumberTitle', 'off');
@@ -228,28 +230,28 @@ Z = V(:, 3);
 % % hold on;
 % % trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
 
-% %% plot all roughing_points with cbv skewed orientation
-% figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% axis equal;
-% xlabel ( '--X axis--' );
-% ylabel ( '--Y axis--' );
-% zlabel ( '--Z axis--' );
-% hold on;
-% plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
-% plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
+%% plot all roughing_points with cbv skewed orientation
+figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
+plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
 
-% %% plot roughing_points orientation
-% figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% axis equal;
-% xlabel ( '--X axis--' );
-% ylabel ( '--Y axis--' );
-% zlabel ( '--Z axis--' );
-% hold on;
-% quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
-%     roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
-%     10, 'Color','r','LineWidth',1,'LineStyle','-' );
+%% plot roughing_points orientation
+figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+    roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
+    10, 'Color','r','LineWidth',1,'LineStyle','-' );
 
 % %% ================================================
 % %% plot cutting cbv
@@ -395,7 +397,9 @@ Z = V(:, 3);
 
 % non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
 
+% %% ================================================
 % %% draw tool path
+% %% ================================================
 % % toolpath = [];
 
 % % z = flipud(unique(roughing_points(:,6)));
@@ -501,10 +505,17 @@ for i = 1:size(roughing_points,1)
     r = []; %% working rotation matrix
     max_tetha = 45; 
 
-    translate_x = 1;
-    step_x = 1;
+    translate_to = 1;
+    translate_step = 1;
     trx = []; %% working translation matrix
 
+    %% rotation direction follows tool orientation
+    if roughing_points(i,7) == 0 % if i = 0, then rotate by X-axis
+        rotation_axis = [1 0 0]
+    elseif roughing_points(i,8) == 0 % if j = 0, then rotate by Y-axis
+        rotation_axis = [0 1 0]
+    end
+        
     while (CL > 0) && (iteration < max_iteration) && (tetha < max_tetha)
 
         %% TRANS parameters
@@ -520,18 +531,31 @@ for i = 1:size(roughing_points,1)
         %% [r7 r8 r9 0]
         %% [0  0  0  1]
         % always taking rx=[0 1 0] as rotation axis
-        rotation_matrix = vrrotvec2mat([0 1 0 deg2rad(tetha)]);
+        % rotation_axis = [0 1 0];
+        rotation_matrix = vrrotvec2mat([rotation_axis deg2rad(tetha)]);
         r = rotation_matrix;
 
-        %% translation matrix, move by step_x
+        %% translation matrix, move by translate_step
         %% [tx ty tz]
-        %% tx = translate_x; ty = tz = 0;
+        %% tx = translate_to; ty = tz = 0;
         %% 
         %% [1 0 0 tx]
         %% [0 1 0 ty]
         %% [0 0 1 tz]
         %% [0 0 0 1 ]
-        trx = [translate_x 0 0];
+        if rotation_axis == [0 1 0]
+            if roughing_points(i,7) > 0
+                trx = [translate_step 0 0];
+            else
+                trx = [-translate_step 0 0];
+            end
+        elseif rotation_axis == [1 0 0]
+            if roughing_points(i,8) > 0
+                trx = [0 translate_step 0];
+            else
+                trx = [0 -translate_step 0];
+            end
+        end
 
         %% adjust to trans1 = (e1, ..., e12)
         % trans1 = [
@@ -562,7 +586,7 @@ for i = 1:size(roughing_points,1)
         CL = coldetect(cylinder_tri, working_part, trans1, trans2)
 
         tetha = tetha + incremental_tetha
-        translate_x = translate_x + step_x
+        translate_to = translate_to + translate_step
         iteration = iteration + 1
     end
 
