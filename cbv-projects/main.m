@@ -3,7 +3,7 @@
 %% ================================================
 
 folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-filename = 'coba kontur';
+filename = '1b';
 % filename = 'coba searah y-1';
 
 stlpath = strcat(folder, '/', filename, '.txt');
@@ -41,15 +41,15 @@ end
 %% ================================================
 %% Roughing parameters
 %% ================================================
-density = 10; % density determines how wide points cloud
+density = 4; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 10;
-tool_length = 80;
-tool_radius = 8;
+vertical_stepover   = 4;
+tool_length = 50;
+tool_radius = 3;
 offset = [10 10 10];
-effective_tool_length = 20;
+effective_tool_length = 10;
 
 max_min = maxmin(V);
 
@@ -160,7 +160,7 @@ Z = V(:, 3);
 
 % %% plot points cloud
 figure('Name', 'Points Cloud & Vertical Slices', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Inter' );
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'None' );
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
@@ -169,16 +169,24 @@ hold on;
 
 % plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud(:,:,3), 'm.', 'MarkerSize', 5)
 
-% %% draw vertical slice
-% for i = 1:size(points_cloud, 1)
-%     for j = 1:size(points_cloud, 2)
-%         x = points_cloud(i,j,1);
-%         y = points_cloud(i,j,2);
-%         z = points_cloud(i,j,3);
-%         z_max = max_min(1,3);
-%         line([x; x], [y; y], [z; z_max], 'Color','b','LineWidth',1,'LineStyle','-');
-%     end
-% end
+%% draw vertical slice
+%% draw points cloud
+for i = 1:size(points_cloud, 1)
+    for j = 1:size(points_cloud, 2)
+        x = points_cloud(i,j,1);
+        y = points_cloud(i,j,2);
+        z = points_cloud(i,j,3);
+        z_max = max_min(1,3);
+        % line([x; x], [y; y], [z; z_max], 'Color','b','LineWidth',1,'LineStyle','-');
+        
+        for k = 1:vertical_stepover:z_max
+            points_cloud_at_z = points_cloud(:,:,3);
+            points_cloud_at_z(:,:) = k;
+            plot3(points_cloud(:,:,1), points_cloud(:,:,2), points_cloud_at_z, 'm.', 'MarkerSize', 5)    
+        end
+        
+    end
+end
 
 % %% plot cc points/intersection points/boundary points
 % figure('Name', 'Intersection Points (Boundary Points)', 'NumberTitle', 'off');
@@ -200,16 +208,6 @@ zlabel ( '--Z axis--' );
 hold on;
 plot3(cbv_points(:,1), cbv_points(:,2), cbv_points(:,3), 'rx', 'MarkerSize', 10);
 
-% %% plot cbv volume part
-% % figure('Name', 'CBV Volume Part', 'NumberTitle', 'off');
-% % trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% % axis equal;
-% % xlabel ( '--X axis--' );
-% % ylabel ( '--Y axis--' );
-% % zlabel ( '--Z axis--' );
-% % hold on;
-% % trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
-
 %% plot all roughing_points with cbv skewed orientation
 figure('Name', 'Roughing Points (Skewed)', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
@@ -221,8 +219,9 @@ hold on;
 plot3(roughing_points(:,1), roughing_points(:,2), roughing_points(:,3), 'b.', 'MarkerSize', 10);
 plot3(roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), 'b.', 'MarkerSize', 10);
 
+
 %% plot roughing_points orientation
-figure('Name', 'Tool Orientation', 'NumberTitle', 'off');
+figure('Name', 'Tool Orientation CBV and OBV', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 axis equal;
 xlabel ( '--X axis--' );
@@ -231,23 +230,27 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3( cbv_points(:,4), cbv_points(:,5), cbv_points(:,6), ...
     cbv_points(:,7), cbv_points(:,8), cbv_points(:,9), ...
-    10, 'Color','r','LineWidth',2,'LineStyle','-' );
+    10, 'Color','r','LineWidth',2,'LineStyle','-');
+quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
+    roughing_points(:,7), roughing_points(:,8), roughing_points(:,9), ...
+    10, 'Color','r','LineWidth',2,'LineStyle','-');
 
-% %% ================================================
-% %% plot cutting cbv
-% %% ================================================
-% calc_volumes(V, T, roughing_points, tool_length, vertical_stepover);
+%% ================================================
+%% plot cutting cbv
+%% ================================================
+% tool_length = 10
+calc_volumes(V, T, roughing_points, tool_length, vertical_stepover);
 
-% %% ================================================
-% %% plot obv
-% %% ================================================
-% figure('Name', 'OBV', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-% axis equal;
-% xlabel ( '--X axis--' );
-% ylabel ( '--Y axis--' );
-% zlabel ( '--Z axis--' );
-% hold on;
+%% ================================================
+%% plot obv
+%% ================================================
+figure('Name', 'OBV', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
 
 % % dt = DelaunayTri(obv(:,1), obv(:,2), obv(:,3));
 % dt = delaunayn(obv);
@@ -259,9 +262,23 @@ quiver3( cbv_points(:,4), cbv_points(:,5), cbv_points(:,6), ...
 % non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
 
 %% ================================================
+%% plot cbv volume part
+%% ================================================
+
+% figure('Name', 'CBV Volume Part', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% axis equal;
+% xlabel ( '--X axis--' );
+% ylabel ( '--Y axis--' );
+% zlabel ( '--Z axis--' );
+% hold on;
+% trisurf(tri, cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
+
+%% ================================================
 %% Toolpath simulation + gouging detection
 %% ================================================
-gouging_iteration(V, T, roughing_points, tool_length, tool_radius);
+gouging_iteration(V, T, roughing_points, tool_length, tool_radius, 'Simulation');
+gouging_iteration(V, T, roughing_points, tool_length, tool_radius, 'Interference Free');
 
 %% ================================================
 %% save to NC file

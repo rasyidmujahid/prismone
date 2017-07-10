@@ -1,5 +1,7 @@
 %% function for toolpath simulation + gouging detection
-function result = gouging_iteration(V, T, roughing_points, tool_length, tool_radius)
+function result = gouging_iteration(V, T, roughing_points, tool_length, tool_radius, title)
+    disp(title);
+
     X = V(:, 1);
     Y = V(:, 2);
     Z = V(:, 3);
@@ -9,8 +11,8 @@ function result = gouging_iteration(V, T, roughing_points, tool_length, tool_rad
     cylinder_end_2 = [];
     CL = 0;
 
-    f = figure('Name', 'Simulation', 'NumberTitle', 'off');
-    trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Inter' );
+    f = figure('Name', title, 'NumberTitle', 'off');
+    trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'None' );
     axis equal;
     xlabel ( '--X axis--' );
     ylabel ( '--Y axis--' );
@@ -20,9 +22,11 @@ function result = gouging_iteration(V, T, roughing_points, tool_length, tool_rad
     for i = 1:size(roughing_points,1)
 
         %% skip if not cbv
-        % if isequal(roughing_points(i,7:9), [0 0 100])
-        %     continue;
-        % end
+        if strcmp(title, 'Interference Free') == 1
+            if isequal(roughing_points(i,7:9), [0 0 100])
+                continue;
+            end
+        end
 
         % if roughing_points(i,3) < 40
         %    continue;
@@ -88,6 +92,8 @@ function result = gouging_iteration(V, T, roughing_points, tool_length, tool_rad
         original_tool_orientation = roughing_points(i,7:9);
             
         while (CL > 0) && (iteration < max_iteration) % && (tetha < max_tetha)
+
+            % pause(0.5)
 
             if rotation_axis == [0 0 0]
                 break;
@@ -180,7 +186,12 @@ function result = gouging_iteration(V, T, roughing_points, tool_length, tool_rad
             % delete(cylinder_end_2);
             set(cylinder_handle, 'FaceColor', 'g');
         else
-            set(cylinder_handle, 'FaceColor', 'r');
+            if strcmp(title, 'Simulation')
+                set(cylinder_handle, 'FaceColor', 'g');
+            else
+                set(cylinder_handle, 'FaceColor', 'r');
+            end
+            
             drawnow;
         end
 

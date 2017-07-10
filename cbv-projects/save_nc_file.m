@@ -14,12 +14,72 @@ function nc_data = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, 
 
     %% write to file [x y z i j k]
     fileID = fopen([filename, '.nc'], 'w');
+    fprintf(fileID, '%s', header());
     for i = 1:size(nc_data,1)
         nc_line = sprintf('X%+.3f Y%+.3f Z%+.3f I%+.3f J%+.3f K%+.3f', nc_data(i,:));
         nc_line = strrep(nc_line,'+0.000','0.0');
         fprintf(fileID, '%s\r\n', nc_line);
     end
+    fprintf(fileID, '%s', footer());
     fclose(fileID);
+end
+
+%% functionname: function description
+function outputs = header()
+    header = {  '%'
+                'O0010'
+                '(DATE :  20.1.2018)'
+                '(TIME :  16:42:40)'
+                'G00 G17 G21 G40 G80 G90'
+                'G90 G54 G80 G17 G40 G69'
+                'G91 G28 Z0'
+                'G91 G28 X0 Y0'
+                'M13'
+                'M33'
+                'M31'
+                'G90 G54 G00 A0 C0'
+                'T1 M06 ( DIA_4: D= 4. R= 0.0)'
+                'S2000 M03'
+                'G05.2 Q1.'
+                'G05.3 P50 '
+                '(5X PRODUCTION-PRO #9)'
+                '(>>>>>>>>> CON_SCENARIO=TOOL-CHANGE - CON_CONTEXT=1)'
+                'G01 X-10.031 Y-16.187 I0.0 J0.0 K+1. F5000.'
+                'M09'
+                '(----------> EOC START)'
+                'M12'
+                'M32'
+                'X-10.031 Y-16.187'
+                'G43 H1 Z150.'
+                '(----------> EOC END)'
+                'G01 Z4.062 I0.0 J0.0 K+1. F5000.'
+            };
+    outputs = sprintf('%s\n', header{:});
+end
+
+%% functionname: function description
+function outputs = footer()
+    footer = {
+                'Z5.462 I0.0 J0.0 K+1.'
+                'Z15.462 I0.0 J0.0 K+1. F5000.'
+                'Z150. I0.0 J0.0 K+1.'
+                'M129'
+                'M140'
+                'M09'
+                'M05'
+                'G91 G28 Z0'
+                'G91 G28 X0 Y0'
+                'M13'
+                'M33'
+                'M31'
+                'G90 G54 G00 A0 C0'
+                'M30'
+                '(FEED TIME  :  00:02:21)'
+                '(AIR TIME   :  00:00:21)'
+                '(TOTAL TIME :  00:02:41)'
+                '% '
+            };
+    outputs = sprintf('%s\n', footer{:});
 end
 
 
