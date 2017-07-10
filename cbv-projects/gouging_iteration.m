@@ -1,6 +1,21 @@
 %% function for toolpath simulation + gouging detection
-function result = gouging_iteration(V, T, roughing_points, tool_length, tool_radius, title)
+function result = gouging_iteration(V, T, raw_roughing_points, tool_length, tool_radius, title)
     disp(title);
+
+    %% split obv first then cbv
+    roughing_points_cbv = [];
+    roughing_points_obv = [];
+    for i = 1:size(raw_roughing_points,1)
+        if isequal(raw_roughing_points(i,7:9), [0 0 100]) %% obv
+            roughing_points_obv = [roughing_points_obv; raw_roughing_points(i,:)];
+        else
+            roughing_points_cbv = [roughing_points_cbv; raw_roughing_points(i,:)];
+        end
+    end
+
+    size(roughing_points_obv)
+    size(roughing_points_cbv)
+    roughing_points = [roughing_points_obv; roughing_points_cbv];
 
     X = V(:, 1);
     Y = V(:, 2);
