@@ -2,14 +2,14 @@
 %% Read STL file
 %% ================================================
 
-folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
-filename = 'coba3';
+% folder = 'C:\Project\Mas Wawan\cbv\contohmodel';
+% filename = 'coba3';
 % filename = 'coba7';
 % filename = 'obstacle';
 % filename = 'poket milling';
 
-% folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
-% filename = 'coba kontur';
+folder = 'C:\Project\Mas Wawan\cbv\cobabentuk';
+filename = 'coba kontur';
 
 
 stlpath = strcat(folder, '/', filename, '.txt');
@@ -99,40 +99,11 @@ end
 roughing_points = tool_orientation(roughing_points, intersection_points, vertical_stepover, T, V);
 
 %% ================================================
-%% save to NC file
-%% ================================================
-under_cbv_points = roughing_points(find(roughing_points(:,4) ~= 0 & roughing_points(:,5) ~= 0 & roughing_points(:,6) ~= 0),:);
-% nc = save_nc_file(under_cbv_points(:,4), under_cbv_points(:,5), under_cbv_points(:,6), ...
-%     under_cbv_points(:,7), under_cbv_points(:,8), under_cbv_points(:,9), ...
-%     offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
-
-%% ================================================
 %% Volume calculation: Part & CBV
 %% ================================================
 [partVolume, partArea] = stlVolume(V', T(:,1:3)');
 totalVolume = (max_min(1,1) - max_min(2,1)) * (max_min(1,2) - max_min(2,2)) * (max_min(1,3) - max_min(2,3));
 invertedVolume = totalVolume - partVolume;
-
-%% DEPRECATED
-%% ccpoints that bound the CBV part
-% cbv_boundary_points = [];
-% for i = 1:size(points_cloud,1)
-%     for j = 1:size(points_cloud,2)
-%         sl = [points_cloud(i,j,1) points_cloud(i,j,2)];
-%         boundary_at_this_slicing_line = get_boundary_points_at(sl, intersection_points);
-%         if (size(boundary_at_this_slicing_line,1)) > 2
-%             %% it means under cbv
-%             cbv_boundary_points = [cbv_boundary_points; boundary_at_this_slicing_line(2:3,1:3)];
-%         end
-%     end
-% end
-
-% %% Creates a Delaunay triangulation from a set of CBV ccpoints
-% dt = DelaunayTri(cbv_boundary_points(:,1), cbv_boundary_points(:,2), cbv_boundary_points(:,3));
-% tri = dt(:,:);
-% cbv_volume = stlVolume(cbv_boundary_points(:,1:3)', tri')
-%% END-OF-DEPRECATED
-
 
 %% ================================================
 %% Volume calculation: OBV
@@ -179,11 +150,11 @@ Y = V(:, 2);
 Z = V(:, 3);
 
 % %% plot normal vector along with triangle surface
-% % quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
+%% quiver3( tricenter(:,1), tricenter(:,2), tricenter(:,3), T(:,4), T(:,5), T(:,6) );
 
 % %% plot points cloud
 % figure('Name', 'Points Cloud & Vertical Slices', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'Inter' );
 % axis equal;
 % xlabel ( '--X axis--' );
 % ylabel ( '--Y axis--' );
@@ -400,44 +371,6 @@ quiver3( roughing_points(:,4), roughing_points(:,5), roughing_points(:,6), ...
 
 % non_machinable_volume = invertedVolume - abs(obv_volume) - abs(total_cutting_cbv_volume);
 
-% %% ================================================
-% %% draw tool path
-% %% ================================================
-% % toolpath = [];
-
-% % z = flipud(unique(roughing_points(:,6)));
-% % direction = NaN;
-
-% % direction_type = 1;
-
-% % for i = 1:size(z)
-% %     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
-
-% %     if mod(i,2) == 0
-% %         y = unique(roughing_points_at_z(:,direction_type));
-% %     else
-% %         y = flipud(unique(roughing_points_at_z(:,direction_type)));
-% %     end
-
-% %     for j = 1:size(y)
-% %         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
-
-% %         if isnan(direction)
-% %             direction = mod(j,2) == 0;
-% %         end
-        
-% %         if direction
-% %             toolpath = [toolpath; roughing_points_at_y];
-% %         else
-% %             toolpath = [toolpath; flipud(roughing_points_at_y)];
-% %         end
-        
-% %         direction = ~direction;
-% %     end
-% % end
-
-% % line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
-
 %% ================================================
 %% Toolpath simulation + gouging detection
 %% ================================================
@@ -651,3 +584,63 @@ for i = 1:size(roughing_points,1)
     %     drawnow;
     % end
 end
+
+%% ================================================
+%% sort points
+%% 1. by cbv orientation
+%% 2. top layer first
+%% ================================================
+
+
+%% ================================================
+%% save to NC file
+%% ================================================
+%% || points_cloud x y z || skewed_points x1 y1 z1 || tool_orientation i j k
+
+%% opt-out if to save cbv points only
+% nc_points = roughing_points(find(roughing_points(:,7) ~= 0 & roughing_points(:,8) ~= 0 & roughing_points(:,9) ~= 100),:);
+
+%% otherwise
+nc_points = roughing_points;
+
+nc = save_nc_file(nc_points(:,4), nc_points(:,5), nc_points(:,6), ...
+                  nc_points(:,7), nc_points(:,8), nc_points(:,9), ...
+                  offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
+
+% %% ================================================
+% %% draw tool path
+% %% ================================================
+% % toolpath = [];
+
+% % z = flipud(unique(roughing_points(:,6)));
+% % direction = NaN;
+
+% % direction_type = 1;
+
+% % for i = 1:size(z)
+% %     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
+
+% %     if mod(i,2) == 0
+% %         y = unique(roughing_points_at_z(:,direction_type));
+% %     else
+% %         y = flipud(unique(roughing_points_at_z(:,direction_type)));
+% %     end
+
+% %     for j = 1:size(y)
+% %         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+
+% %         if isnan(direction)
+% %             direction = mod(j,2) == 0;
+% %         end
+        
+% %         if direction
+% %             toolpath = [toolpath; roughing_points_at_y];
+% %         else
+% %             toolpath = [toolpath; flipud(roughing_points_at_y)];
+% %         end
+        
+% %         direction = ~direction;
+% %     end
+% % end
+
+% % line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
