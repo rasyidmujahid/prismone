@@ -12,8 +12,6 @@ function output = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, f
         throw(ME); 
     end
 
-    % output = sortrows(output, [2 1]);
-
     %% write to file [x y z i j k]
     fileID = fopen([filename, '.nc'], 'w');
     for i = 1:size(output,1)
