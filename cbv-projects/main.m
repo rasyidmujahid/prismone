@@ -274,6 +274,9 @@ gouging_iteration(V, T, roughing_points, tool_length, tool_radius);
 %% otherwise
 nc_points = roughing_points;
 
+%% convert tool orientation into unit vector
+nc_points(:, 7:9) = nc_points(:, 7:9) / norm(nc_points(:, 7:9));
+
 nc = save_nc_file(nc_points(:,4), nc_points(:,5), nc_points(:,6), ...
                   nc_points(:,7), nc_points(:,8), nc_points(:,9), ...
                   offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
