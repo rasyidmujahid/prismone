@@ -1,11 +1,11 @@
 %% save_nc_file: print local coordinate to global coordinate
-function output = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, filename)
+function nc_data = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, filename)
     if tilting_type == 'table'
-        output = table_tilting_alt(X, Y, Z, i, j, k, lx, ly, lz, lt);
+        nc_data = table_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
     elseif tilting_type == 'spindle'
-        output = spindle_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
+        nc_data = spindle_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
     elseif tilting_type == 'table_spindle'
-        output = table_spindle_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
+        nc_data = table_spindle_tilting(X, Y, Z, i, j, k, lx, ly, lz, lt);
     else
         ME = MException('NCFileWriter:unrecognizeInput', ...
             'Tilting type is not recognized: table, spindle, table_spindle.');
@@ -14,11 +14,14 @@ function output = save_nc_file(X, Y, Z, i, j, k, lx, ly, lz, lt, tilting_type, f
 
     %% write to file [x y z i j k]
     fileID = fopen([filename, '.nc'], 'w');
-    for i = 1:size(output,1)
-        fprintf(fileID, 'X%f Y%f Z%f I%f J%f K%f\r\n', output(i,:));
+    for i = 1:size(nc_data,1)
+        nc_line = sprintf('X%+.3f Y%+.3f Z%+.3f I%+.3f J%+.3f K%+.3f', nc_data(i,:));
+        nc_line = strrep(nc_line,'+0.000','0.0');
+        fprintf(fileID, '%s\r\n', nc_line);
     end
     fclose(fileID);
 end
+
 
 %% table_tilting: generate nc points for table tilting
 %% retuns [x y z i j k]
