@@ -275,7 +275,8 @@ gouging_iteration(V, T, roughing_points, tool_length, tool_radius);
 nc_points = roughing_points;
 
 %% convert tool orientation into unit vector
-nc_points(:, 7:9) = nc_points(:, 7:9) / norm(nc_points(:, 7:9));
+norm_ = sqrt(sum(nc_points(:,7:9).^2,2));
+nc_points(:, 7:9) = bsxfun(@rdivide, nc_points(:, 7:9), norm_);
 
 nc = save_nc_file(nc_points(:,4), nc_points(:,5), nc_points(:,6), ...
                   nc_points(:,7), nc_points(:,8), nc_points(:,9), ...
