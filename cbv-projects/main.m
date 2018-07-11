@@ -41,11 +41,11 @@ end
 %% ================================================
 %% Roughing parameters
 %% ================================================
-density = 4; % density determines how wide points cloud
+density = 2; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 4;
+vertical_stepover   = 2;
 tool_length = 50;
 tool_radius = 3;
 offset = [10 10 10];
@@ -302,37 +302,69 @@ nc = save_nc_file(nc_points(:,4), nc_points(:,5), nc_points(:,6), ...
 % %% ================================================
 % %% draw tool path
 % %% ================================================
-% % toolpath = [];
+obv_roughing_points = roughing_points(find(roughing_points(:,7) == 0 & roughing_points(:,8) == 0 & roughing_points(:,9) == 100),:);
+obv_toolpath = [];
 
-% % z = flipud(unique(roughing_points(:,6)));
-% % direction = NaN;
+z = flipud(unique(obv_roughing_points(:,6)));
+direction = NaN;
+direction_type = 1;
+for i = 1:size(z)
+    roughing_points_at_z = obv_roughing_points(obv_roughing_points(:,6) == z(i),:);
+    if mod(i,2) == 0
+        y = unique(roughing_points_at_z(:,direction_type));
+    else
+        y = flipud(unique(roughing_points_at_z(:,direction_type)));
+    end
 
-% % direction_type = 1;
+    for j = 1:size(y)
+        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+        if isnan(direction)
+            direction = mod(j,2) == 0;
+        end
+        if direction
+            obv_toolpath = [obv_toolpath; roughing_points_at_y];
+        else
+            obv_toolpath = [obv_toolpath; flipud(roughing_points_at_y)];
+        end
+        direction = ~direction;
+    end
+end
 
-% % for i = 1:size(z)
-% %     roughing_points_at_z = roughing_points(roughing_points(:,6) == z(i),:);
+cbv_roughing_points = roughing_points(find(roughing_points(:,7) ~= 0 | roughing_points(:,8) ~= 0),:);
+cbv_toolpath = [];
 
-% %     if mod(i,2) == 0
-% %         y = unique(roughing_points_at_z(:,direction_type));
-% %     else
-% %         y = flipud(unique(roughing_points_at_z(:,direction_type)));
-% %     end
+z = flipud(unique(cbv_roughing_points(:,6)));
+direction = NaN;
+direction_type = 1;
+for i = 1:size(z)
+    roughing_points_at_z = cbv_roughing_points(cbv_roughing_points(:,6) == z(i),:);
+    if mod(i,2) == 0
+        y = unique(roughing_points_at_z(:,direction_type));
+    else
+        y = flipud(unique(roughing_points_at_z(:,direction_type)));
+    end
 
-% %     for j = 1:size(y)
-% %         roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+    for j = 1:size(y)
+        roughing_points_at_y = roughing_points_at_z(roughing_points_at_z(:,direction_type) == y(j),:);
+        if isnan(direction)
+            direction = mod(j,2) == 0;
+        end
+        if direction
+            cbv_toolpath = [cbv_toolpath; roughing_points_at_y];
+        else
+            cbv_toolpath = [cbv_toolpath; flipud(roughing_points_at_y)];
+        end
+        direction = ~direction;
+    end
+end
 
-% %         if isnan(direction)
-% %             direction = mod(j,2) == 0;
-% %         end
-        
-% %         if direction
-% %             toolpath = [toolpath; roughing_points_at_y];
-% %         else
-% %             toolpath = [toolpath; flipud(roughing_points_at_y)];
-% %         end
-        
-% %         direction = ~direction;
-% %     end
-% % end
 
-% % line(toolpath(:,1), toolpath(:,2), toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
+figure('Name', 'Tool Path', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+line(obv_toolpath(:,1), obv_toolpath(:,2), obv_toolpath(:,3), 'Color', 'b', 'LineWidth', 2, 'LineStyle', '-');
+line(cbv_toolpath(:,1), cbv_toolpath(:,2), cbv_toolpath(:,3), 'Color', 'r', 'LineWidth', 2, 'LineStyle', '-');
