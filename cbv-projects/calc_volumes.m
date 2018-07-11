@@ -22,6 +22,11 @@ function [outputs] = calc_valumes(V, T, roughing_points, tool_length, vertical_s
 
     for i = 1:size(all_z,1)
         z = all_z(i);
+
+        % if z ~= 40
+            % continue
+        % end
+
         indices = find_rows_in_matrix(z, roughing_points(:,3));
 
         roughing_points_at_this_z = roughing_points(indices,:);
@@ -42,20 +47,33 @@ function [outputs] = calc_valumes(V, T, roughing_points, tool_length, vertical_s
             indices = find_rows_in_matrix(y, cbv_points_at_this_z(:,2));
 
             if (isempty(indices))
-                % disp(['y: ', num2str(y)]);
-                % disp(['z: ', num2str(z)]);
+                disp(['y: ', num2str(y)]);
+                disp(['z: ', num2str(z)]);
                 continue;
             end
 
-            %% add a new point where the tool-handle comes from
-            last_index = indices(end);
-            last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
-            tool_handle_origin_point = last_cbv_point_at_this_z_y(:,4:6) + ...
-                tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
-            cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point -last_cbv_point_at_this_z_y(:,7:9)]];
+            %% add a new point where the tool-handle swipe from
+            first_index = indices(1);
+             last_index = indices(end);
+            first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,:);
+             last_cbv_point_at_this_z_y = cbv_points_at_this_z(last_index,:);
 
-            %% update last_cbv_point_at_this_z_y to follow tool_handle_origin_point(x,y)
-            last_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point(:,1:2);
+            %% tool handle at last_index side 
+            tool_handle_origin_point_at_last_side = last_cbv_point_at_this_z_y(:,4:6) + ...
+                tool_length * last_cbv_point_at_this_z_y(:,7:9) / norm(last_cbv_point_at_this_z_y(:,7:9));
+            cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point_at_last_side -last_cbv_point_at_this_z_y(:,7:9)]];
+
+            %% tool handle at first_index side
+            tool_handle_origin_point_at_first_side = first_cbv_point_at_this_z_y(:,4:6) + ...
+                tool_length * first_cbv_point_at_this_z_y(:,7:9) / norm(first_cbv_point_at_this_z_y(:,7:9));
+            cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 tool_handle_origin_point_at_first_side -first_cbv_point_at_this_z_y(:,7:9)]];
+
+            %% update first_cbv_point_at_this_z_y to follow tool_handle_origin_point_at_first_side(x,y)
+            first_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point_at_first_side(:,1:2);
+            cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 first_cbv_point_at_this_z_y(:,4:6) 0 0 1]];
+
+            %% update last_cbv_point_at_this_z_y to follow tool_handle_origin_point_at_last_side(x,y)
+            last_cbv_point_at_this_z_y(:,4:5) = tool_handle_origin_point_at_last_side(:,1:2);
             cbv_points_at_this_z = [cbv_points_at_this_z; [0 0 0 last_cbv_point_at_this_z_y(:,4:6) 0 0 1]];
 
             %% =================================================
@@ -67,8 +85,8 @@ function [outputs] = calc_valumes(V, T, roughing_points, tool_length, vertical_s
                 first_cbv_point_at_this_z_y = cbv_points_at_this_z(first_index,4:6);
                 last_cbv_point_at_this_z_y = last_cbv_point_at_this_z_y(:,4:6);
                 
-                u = first_cbv_point_at_this_z_y - tool_handle_origin_point;
-                v = last_cbv_point_at_this_z_y - tool_handle_origin_point;
+                u = first_cbv_point_at_this_z_y - tool_handle_origin_point_at_first_side;
+                v =  last_cbv_point_at_this_z_y - tool_handle_origin_point_at_last_side;
 
                 %% find angle between 2 vector (in radian)
                 angle = atan2(norm(cross(u,v)),dot(u,v));
