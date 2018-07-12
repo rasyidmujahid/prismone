@@ -6,3 +6,5 @@ paper/
 parts/
 
 trash/
+
+*.asv
