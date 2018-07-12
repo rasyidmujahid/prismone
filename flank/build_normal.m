@@ -8,6 +8,11 @@ function [normals, reversed_ccpoints] = build_normal(vertex_idx_to_cc_points, ve
     
     for i = 1:leng
 
+        %% skip if already calculated previously
+        if sum(normals(i,6:17)) > 0
+            continue;
+        end
+
         %% normal vector
         vertex_idx_1 = vertex_idx_to_cc_points(i,1);
         vertex_idx_2 = vertex_idx_to_cc_points(i,2);

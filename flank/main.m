@@ -72,6 +72,7 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 
 %% find possibly uncovered area
 if ~isempty(reversed_ccpoints) && retry_step_over > 0
+    %% recalculate ccpoints and normals
     retry_ccpoints_data = ccpoint(T(:,1:3), V, step_over, retry_step_over, unique(reversed_ccpoints(:,4)));
     retry_ccpoints_data(:,6:17) = 0;
     ccpoints_data = [ccpoints_data; retry_ccpoints_data];
