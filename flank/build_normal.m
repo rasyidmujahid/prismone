@@ -9,7 +9,7 @@ function [normals, reversed_ccpoints] = build_normal(vertex_idx_to_cc_points, ve
     for i = 1:leng
 
         %% skip if already calculated previously
-        if sum(normals(i,6:17)) > 0
+        if size(vertex_idx_to_cc_points,2) > 5 && sum(normals(i,6:17)) > 0
             continue;
         end
 
