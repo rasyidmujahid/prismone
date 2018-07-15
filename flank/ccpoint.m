@@ -6,13 +6,21 @@
 %% Returns array of following:
 %% ||           vertex indices         ||    CCP    ||
 %% || vertex index 1 || vertex index 2 || x   y   z ||
-function ccpoints = ccpoint(triangles, vertices, stepover)
+function ccpoints = ccpoint(triangles, vertices, stepover, retry_stepover, retry_area)
 
     max_min = maxmin(vertices);
     maxmin_y = max_min(:,2);
 
-    lines_y = maxmin_y(2):stepover:maxmin_y(1);
-    disp(['all y values', num2str(lines_y)]);
+    lines_y = [];
+    if exist('retry_stepover', 'var') && exist('retry_area', 'var')
+        for l = 1:length(retry_area)
+            retry_line = retry_area(l);
+            lines_y = [lines_y retry_line:retry_stepover:retry_line+stepover];
+        end
+    else
+        lines_y = maxmin_y(2):stepover:maxmin_y(1);
+    end
+    disp(['all y values', num2str(lines_y)]);    
 
     ccpoints = [];
     

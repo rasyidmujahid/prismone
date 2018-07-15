@@ -1,11 +1,17 @@
 %% build_normal: build ccp normal vector
-function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
+function [normals, reversed_ccpoints] = build_normal(vertex_idx_to_cc_points, vertices, triangles)
 
     vertex_idx_to_cc_points = sortrows(vertex_idx_to_cc_points, [4 3]);
     normals = vertex_idx_to_cc_points;
     leng = length(vertex_idx_to_cc_points);
+    reversed_ccpoints = [];
     
     for i = 1:leng
+
+        %% skip if already calculated previously
+        if sum(normals(i,6:17)) > 0
+            continue;
+        end
 
         %% normal vector
         vertex_idx_1 = vertex_idx_to_cc_points(i,1);
@@ -57,6 +63,8 @@ function normals = build_normal(vertex_idx_to_cc_points, vertices, triangles)
             %% reverse negative k in vector (i,j,k)
             if tangent(3) < 0
                 tangent = -tangent;
+                %% remember ccppoint that reversed
+                reversed_ccpoints = [reversed_ccpoints; vertex_idx_to_cc_points(i,:);];
             end
             
             normals(i,9:11) = tangent / norm(tangent); 

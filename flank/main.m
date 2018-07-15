@@ -2,7 +2,7 @@
 %% Read STL file
 %% ================================================
 
-folder = 'C:\Project\Glash\parts';
+folder = 'C:\Repo\Project\Glash\parts';
 filename = '0_005stlasc';
 % folder = 'STL20151020';
 
@@ -23,10 +23,10 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
-step_over = 10
-retry_step_over = 2
+step_over = 20
+retry_step_over = 5
 tool_length = 10;
-tool_radius = 2;
+tool_radius = 5;
 offset = [10 10 10];
 effective_tool_length = 20;
 elevation = -30;
@@ -59,20 +59,27 @@ end
 
 ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 
-
 %% ================================================
 %% build ccpoints normal vector, ccpoints tangential vector
 %% ccpoints_data:
 %% || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
 %% ================================================
 
-ccpoints_data = build_normal(ccpoints_data, V, T);
+[ccpoints_data reversed_ccpoints] = build_normal(ccpoints_data, V, T);
 
 %% ================================================
 %% retry uncovered area with smaller step-over
 %% ================================================
 
+%% find possibly uncovered area
+if ~isempty(reversed_ccpoints) && retry_step_over > 0
+    %% recalculate ccpoints and normals
+    retry_ccpoints_data = ccpoint(T(:,1:3), V, step_over, retry_step_over, unique(reversed_ccpoints(:,4)));
+    retry_ccpoints_data(:,6:17) = 0;
+    ccpoints_data = [ccpoints_data; retry_ccpoints_data];
 
+    [ccpoints_data r_] = build_normal(ccpoints_data, V, T);
+end
 
 %% ================================================
 %% save to NC file
@@ -237,9 +244,8 @@ for i = 1:size(ccpoints_data,1)-1
     tangent = cross(ccpoints_data(i+1,6:8), ccpoints_data(i+1,15:17));
     tangent = tangent / norm(tangent);
     if tangent ~= ccpoints_data(i+1,9:11)
-        tangent
-        normal_ = ccpoints_data(i+1,9:11)
-        c = 'green'
+        normal_ = ccpoints_data(i+1,9:11);
+        c = 'green';
     else
         c = 'red';
     end
@@ -340,7 +346,7 @@ for i = 1:size(ccpoints_data,1)-1
         %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
         %% xy' = r*xy where xy is column vector.
         ccpoints_data(i,9:11) = (r * ccpoints_data(i,9:11)')';
-        tool_orientation_after_vcollide = ccpoints_data(i,9:11)
+        tool_orientation_after_vcollide = ccpoints_data(i,9:11);
 
         %% adjust points x2 y2 z2 following new tangent orientation
         ccpoints_data(i,12:14) = ccpoints_data(i,3:5) + tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
