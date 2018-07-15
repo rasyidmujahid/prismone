@@ -29,6 +29,7 @@ tool_length = 10;
 tool_radius = 2;
 offset = [10 10 10];
 effective_tool_length = 20;
+elevation = -30;
 
 %% ================================================
 %% If need to plot normal vector on each triangle
@@ -123,6 +124,7 @@ hold on;
 %% ================================================
 
 plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % plot normal vector on top of ccpoints
 figure('Name', 'Normal Vector', 'NumberTitle', 'off');
@@ -135,6 +137,7 @@ hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
     3, 'Color','b','LineWidth',1,'LineStyle','-');
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % % plot tangen vector on top of ccpoints
 figure('Name', 'Tool Orientation Vector (Cross Product) .2', 'NumberTitle', 'off');
@@ -147,7 +150,7 @@ hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
     1, 'Color','r','LineWidth',1,'LineStyle','-');
-
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % % plot feed direction on top of ccpoints
 figure('Name', 'Feed Direction Vector .2', 'NumberTitle', 'off');
@@ -160,7 +163,7 @@ hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,15), ccpoints_data(:,16), ccpoints_data(:,17), ...
     1, 'Color','r','LineWidth',1,'LineStyle','-');
-
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % plot extended tangen vector on top of ccpoints
 % quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
@@ -179,6 +182,7 @@ xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
