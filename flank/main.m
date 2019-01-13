@@ -2,8 +2,8 @@
 %% Read STL file
 %% ================================================
 
-folder = 'C:\Repo\Project\Glash\parts';
-filename = '0_005stlasc';
+folder = 'C:\Project\Glash\parts\nonmachinable';
+filename = 'model4a';
 % folder = 'STL20151020';
 
 stlpath = strcat(folder, '/', filename, '.stl');
@@ -23,9 +23,9 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
-step_over = 20
-retry_step_over = 5
-tool_length = 10;
+step_over = 40
+retry_step_over = 10
+tool_length = 20;
 tool_radius = 5;
 offset = [10 10 10];
 effective_tool_length = 20;
@@ -209,9 +209,9 @@ CL = 0;
 
 for i = 1:size(ccpoints_data,1)-1
 
-    % if ccpoints_data(i,4) < 60 || ccpoints_data(i,4) > 80
-    %     continue;
-    % end
+    if ccpoints_data(i,3) < 20 || ccpoints_data(i,3) > 80
+        continue;
+    end
 
     set(0,'CurrentFigure',f);
 
@@ -245,9 +245,9 @@ for i = 1:size(ccpoints_data,1)-1
     tangent = tangent / norm(tangent);
     if tangent ~= ccpoints_data(i+1,9:11)
         normal_ = ccpoints_data(i+1,9:11);
-        c = 'green';
+        c = 'cyan';
     else
-        c = 'red';
+        c = 'magenta';
     end
     patch(rx,ry,rz,c);
     

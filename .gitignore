@@ -25,3 +25,7 @@ trash/
 *.xlsx
 
 *.csv
+
+*.nc
+
+flank/TODO

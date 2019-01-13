@@ -48,8 +48,9 @@ function [normals, reversed_ccpoints] = build_normal(vertex_idx_to_cc_points, ve
         if next_ccpoint(:,2) ~= ccpoint(:,2)
             %% if not lies on the same y
             to_reverse = true;
-            next_ccpoint = vertex_idx_to_cc_points(i-1, 3:5);
-
+            if i-1 > 0
+                next_ccpoint = vertex_idx_to_cc_points(i-1, 3:5);
+            end
             if next_ccpoint(:,2) ~= ccpoint(:,2)
                 next_ccpoint = [];
             end
