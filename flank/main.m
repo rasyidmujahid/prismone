@@ -2,7 +2,7 @@
 %% Read STL file
 %% ================================================
 
-folder = 'C:\Project\Glash\parts\nonmachinable';
+folder = 'C:\Repo\Project\Glash\parts\nonmachinable';
 filename = 'model4a';
 % folder = 'STL20151020';
 
@@ -70,7 +70,7 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% ================================================
 %% find non-machinable area
 %% ================================================
-non_machinable = find_non_machinable(step_over, step_over, bucket_width, bucket_length, ccpoints_data, V, T);
+[bucket_index bucket_ccp] = find_non_machinable(step_over, step_over, ccpoints_data, V, T);
 
 % %% ================================================
 % %% retry uncovered area with smaller step-over
