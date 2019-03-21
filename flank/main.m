@@ -70,7 +70,7 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% ================================================
 %% find non-machinable area
 %% ================================================
-non_machinable = find_non_machinable(ccpoints_data, V, T);
+non_machinable = find_non_machinable(step_over, step_over, bucket_width, bucket_length, ccpoints_data, V, T);
 
 % %% ================================================
 % %% retry uncovered area with smaller step-over

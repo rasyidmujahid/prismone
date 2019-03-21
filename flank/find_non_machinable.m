@@ -29,29 +29,43 @@ end
 %% returns:
 %%   
 function bucket_index = init_bucket(bucket_width, bucket_length, ccpoints_data)
-    % max_min = maxmin(vertices);
+    max_min = maxmin(vertices);
+    bucket_index = [];
+    bucket_content = [];
 
-    % offset = 0;
-    % min_y = max_min(2,2) + offset;
-    % max_y = max_min(1,2) - offset;
-    % min_x = max_min(2,1) + offset;
-    % max_x = max_min(1,1) - offset;
+    offset = 0;
+    min_y = max_min(2,2) + offset;
+    max_y = max_min(1,2) - offset;
+    min_x = max_min(2,1) + offset;
+    max_x = max_min(1,1) - offset;
 
-    % [X Y] = meshgrid(min_x:bucket_width:max_x, min_y:bucket_length:max_y);
-    % bucket_index = ;
+    %% bucket index structure:
+    %% [x1 y1]
+    %% [x2 y1]
+    %% ..
+    %% [x1 y3]
+    %% [xj yi]
+    %% y1 >> x1---x2---x3-----
+    %% y2 >> x1---x2---x3-----
+    %% y3 >> x1---x2---x3-----
 
-    %% bucket structure:
-    %% [p11 p12 p13 p14]
-    %% [p21 p22 p23 p24]
-    %% [pn1 pn2 pn3 pn4]
-
+    %% y are sorted ascending
     all_y = unique(ccpoints_data(:,4));
 
-    for i = 1:size(all_y,1)
-        y = all_y(i);
-        indices = find_rows_in_matrix(y, ccpoints_data(:, 4));
-        
-        bucket_index = 
+    for i = 1:size(all_y, 1) - 1
+        yi_1 = all_y(i);
+        yi_2 = yi_1 + bucket_width;
+        indices1 = find_rows_in_matrix(yi_1, ccpoints_data(:, 4));
+        indices2 = find_rows_in_matrix(yi_2, ccpoints_data(:, 4));
+
+        all_x = min_x:bucket_width:max_x;
+
+        for j = 1:size(all_x, 1)
+            xj_1 = all_x(j);
+            xj_2 = xj_1 + bucket_length;
+
+            bucket_index = [bucket_index; xj_1 yi_1];
+        end
     end
 end
 
