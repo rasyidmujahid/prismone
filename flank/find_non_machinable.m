@@ -5,20 +5,22 @@
 %%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
 %%   vertices
 %%   triangles
-function [bucket_index, bucket_ccp] = find_non_machinable(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+function [bucket_index, bucket_ccp, bucket_triangle] = find_non_machinable(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     
     %% sort by Y then X
     ccpoints_data = sortrows(ccpoints_data, [4 3]);
     
     [bucket_index bucket_ccp] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices);
 
-    % [bucket_index bucket_ccp bucket_triangle] = run_bucket(ccpoints_data);
+    bucket_triangle = run_bucket(bucket_index, vertices, triangles);
+
+
 end
 
 %% run_bucket:
 %% params:
 %%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
-function [bucket_index, bucket_ccp, bucket_triangle] = run_bucket(ccpoints_data)
+function bucket_triangle = run_bucket(bucket_index, vertices, triangles)
     
 end
 
@@ -32,7 +34,7 @@ function [bucket_index, bucket_ccp] = init_bucket(bucket_width, bucket_length, c
     max_min = maxmin(vertices);
     bucket_index = [];
     bucket_ccp = [];
-    bucket_triangle = []; %% define later during hybrid milling with point mill
+    bucket_triangle = []; 
 
     offset = 0;
     min_y = max_min(2,2) + offset;
@@ -76,17 +78,23 @@ function [bucket_index, bucket_ccp] = init_bucket(bucket_width, bucket_length, c
 
             %%      find all cc points that fall between x1y1 and x2y1 inclusive
             %% and, find all cc points that fall between x1y2 and x2y2 inclusive
-            %% bucket_ccp keep || v-idx1 || v-idx2 ||
+            %%
+            %% bucket_ccp structure:
+            %% 
+            %% id_number | v-idx1 | v-idx2 |
+            %%
             ccp_match_this_bucket = ccpoints_data_at_y1(ccpoints_data_at_y1(:,3) >= xj_1 & ccpoints_data_at_y1(:,3) <= xj_2, 1:2);
-            % if ~isempty(ccp_match_this_bucket)
-            %     bucket_ccp = [bucket_ccp; id_number ccp_match_this_bucket];
-            % end
-
             ccp_match_this_bucket = [ccp_match_this_bucket; ccpoints_data_at_y2(ccpoints_data_at_y2(:,3) >= xj_1 & ccpoints_data_at_y2(:,3) <= xj_2, 1:2)];
+
             if ~isempty(ccp_match_this_bucket)
                 ccp_match_this_bucket = horzcat(repmat(id_number, size(ccp_match_this_bucket,1), 1), ccp_match_this_bucket);
                 bucket_ccp = [bucket_ccp; ccp_match_this_bucket];
             end
+
+            %% bucket_triangle structure:
+            %%
+            %% id_number | tri_index
+            tri_match_this_bucket = [];
             
             id_number = id_number + 1;
         end

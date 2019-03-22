@@ -2,9 +2,11 @@
 %% Read STL file
 %% ================================================
 
-folder = 'C:\Repo\Project\Glash\parts\nonmachinable';
-filename = 'model4a';
-% folder = 'STL20151020';
+% folder = 'C:\Repo\Project\Glash\parts\nonmachinable';
+% filename = 'model4b';
+
+folder = 'C:\Repo\Project\Glash\parts';
+filename = '0_0075stlasc';
 
 stlpath = strcat(folder, '/', filename, '.stl');
 triangles_csv = strcat(folder, '/', filename, '_t.csv');
@@ -71,6 +73,9 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% find non-machinable area
 %% ================================================
 [bucket_index bucket_ccp] = find_non_machinable(step_over, step_over, ccpoints_data, V, T);
+
+C = repmat(2, size(T,1),1);
+trisurf ( T(:,1:3), X, Y, Z, C); axis equal;
 
 % %% ================================================
 % %% retry uncovered area with smaller step-over
@@ -214,9 +219,9 @@ CL = 0;
 
 for i = 1:size(ccpoints_data,1)-1
 
-    if ccpoints_data(i,4) < 140 || ccpoints_data(i,4) > 180
-        continue;
-    end
+    % if ccpoints_data(i,4) < 140 || ccpoints_data(i,4) > 180
+    %     continue;
+    % end
 
     set(0,'CurrentFigure',f);
 
