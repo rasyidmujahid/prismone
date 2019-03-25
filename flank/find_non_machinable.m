@@ -10,18 +10,28 @@ function [bucket_index, bucket_ccp, bucket_triangle] = find_non_machinable(bucke
     %% sort by Y then X
     ccpoints_data = sortrows(ccpoints_data, [4 3]);
     
-    [bucket_index bucket_ccp] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices);
+    [bucket_index bucket_ccp bucket_triangle] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles);
 
-    bucket_triangle = run_bucket(bucket_index, vertices, triangles);
-
-
+    run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle);
 end
 
 %% run_bucket:
 %% params:
 %%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
-function bucket_triangle = run_bucket(bucket_index, vertices, triangles)
-    
+%%   bucket_index:
+%%   bucket_ccp:
+%%   bucket_triangle:
+%% desc: put the result of machinability into bucket_index, in 0 or 1
+function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
+    for i = 1:size(bucket_index, 1)
+        id_number = bucket_index(i, 1);
+        vertid_in_this_bucket = bucket_ccp(bucket_ccp(:,1) == id_number, :);
+        [tf, loc] = ismember(vertid_in_this_bucket(:,2:3), ccpoints_data(:,1:2), 'rows');
+        ccp_in_this_bucket = ccpoints_data(loc, :);
+
+        %% decide
+        
+    end
 end
 
 %% init_bucket: create empty bucket with specified size
@@ -30,7 +40,7 @@ end
 %%  bucket_length
 %% returns:
 %%   
-function [bucket_index, bucket_ccp] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices)
+function [bucket_index, bucket_ccp, bucket_triangle] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     max_min = maxmin(vertices);
     bucket_index = [];
     bucket_ccp = [];
@@ -76,15 +86,15 @@ function [bucket_index, bucket_ccp] = init_bucket(bucket_width, bucket_length, c
 
             bucket_index = [bucket_index; id_number xj_1 yi_1];
 
-            %%      find all cc points that fall between x1y1 and x2y1 inclusive
-            %% and, find all cc points that fall between x1y2 and x2y2 inclusive
-            %%
             %% bucket_ccp structure:
             %% 
             %% id_number | v-idx1 | v-idx2 |
             %%
-            ccp_match_this_bucket = ccpoints_data_at_y1(ccpoints_data_at_y1(:,3) >= xj_1 & ccpoints_data_at_y1(:,3) <= xj_2, 1:2);
-            ccp_match_this_bucket = [ccp_match_this_bucket; ccpoints_data_at_y2(ccpoints_data_at_y2(:,3) >= xj_1 & ccpoints_data_at_y2(:,3) <= xj_2, 1:2)];
+            %%      find all cc points that fall between x1y1 and x2y1 inclusive
+            %% and, find all cc points that fall between x1y2 and x2y2 inclusive
+            %%
+            ccp_match_this_bucket = [ccpoints_data_at_y1(ccpoints_data_at_y1(:,3) >= xj_1 & ccpoints_data_at_y1(:,3) <= xj_2, 1:2); 
+                                     ccpoints_data_at_y2(ccpoints_data_at_y2(:,3) >= xj_1 & ccpoints_data_at_y2(:,3) <= xj_2, 1:2)];
 
             if ~isempty(ccp_match_this_bucket)
                 ccp_match_this_bucket = horzcat(repmat(id_number, size(ccp_match_this_bucket,1), 1), ccp_match_this_bucket);
@@ -94,7 +104,25 @@ function [bucket_index, bucket_ccp] = init_bucket(bucket_width, bucket_length, c
             %% bucket_triangle structure:
             %%
             %% id_number | tri_index
-            tri_match_this_bucket = [];
+            %%
+            %% find 
+            %% 
+            vert_match_this_bucket = vertices(vertices(:,1) >= xj_1 & vertices(:,1) <= xj_2 & ...
+                                              vertices(:,2) >= yi_1 & vertices(:,2) <= yi_2, :);
+            tri_match_this_bucket = unique([
+                                            triangles(ismember(vertices(triangles(:,1),:), vert_match_this_bucket, 'rows'), :);
+                                            triangles(ismember(vertices(triangles(:,2),:), vert_match_this_bucket, 'rows'), :);
+                                            triangles(ismember(vertices(triangles(:,3),:), vert_match_this_bucket, 'rows'), :)
+                                        ], 'rows');
+
+            %% example:
+            %% vert_match_this_bucket = V(V(:,1) >= 10 & V(:,1) <= 20 & V(:,2) >= 0 & V(:,2) <= 10, :);
+            %% tri_match_this_bucket = T(ismember(V(T(:,1),:), vert_match_this_bucket, 'rows'), :)
+
+            if ~isempty(tri_match_this_bucket)
+                tri_match_this_bucket = horzcat(repmat(id_number, size(tri_match_this_bucket,1), 1), tri_match_this_bucket);
+                bucket_triangle = [bucket_triangle; tri_match_this_bucket];
+            end
             
             id_number = id_number + 1;
         end

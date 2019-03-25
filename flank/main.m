@@ -72,10 +72,12 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% ================================================
 %% find non-machinable area
 %% ================================================
-[bucket_index bucket_ccp] = find_non_machinable(step_over, step_over, ccpoints_data, V, T);
+[bucket_index bucket_ccp bucket_triangle] = find_non_machinable(step_over, step_over, ccpoints_data, V, T);
 
-C = repmat(2, size(T,1),1);
-trisurf ( T(:,1:3), X, Y, Z, C); axis equal;
+%% visualize bucket
+[tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
+C = bucket_triangle(loc,1);
+trisurf (T(:,1:3), X, Y, Z, mod(C,10)); axis equal;
 
 % %% ================================================
 % %% retry uncovered area with smaller step-over
