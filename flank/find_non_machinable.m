@@ -29,8 +29,19 @@ function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
         [tf, loc] = ismember(vertid_in_this_bucket(:,2:3), ccpoints_data(:,1:2), 'rows');
         ccp_in_this_bucket = ccpoints_data(loc, :);
 
-        %% decide
-        
+        all_y = unique(ccp_in_this_bucket(:,4));
+        if size(all_y,1) < 2
+            continue;
+        end
+
+        %% the decision starts here,
+        %% within each line y, evaluate j value of ijk tangent vector
+        %% 
+        %% a. machinable                                    b. non-machinable              
+        %%    +++++++++  or  ------------ or +++++------       +++++++++++++ or ----------  or  ++++--------
+        %%    +++++++++  or  ------------    +++++------       -------------    ++++++++++      ----++++++++
+        %% 
+        %% 
     end
 end
 

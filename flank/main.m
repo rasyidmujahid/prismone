@@ -77,7 +77,11 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% visualize bucket
 [tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
 C = bucket_triangle(loc,1);
-trisurf (T(:,1:3), X, Y, Z, mod(C,10)); axis equal;
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); 
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
 
 % %% ================================================
 % %% retry uncovered area with smaller step-over
@@ -160,7 +164,8 @@ surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight
 
 % % plot tangen vector on top of ccpoints
 figure('Name', 'Tool Orientation Vector (Cross Product) .2', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+trisurf ( T(:,1:3), X, Y, Z, mod(C,10));
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
@@ -168,7 +173,7 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    1, 'Color','r','LineWidth',1,'LineStyle','-');
+    1, 'Color','w','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % % plot feed direction on top of ccpoints
