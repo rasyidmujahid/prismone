@@ -173,7 +173,7 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    1, 'Color','w','LineWidth',1,'LineStyle','-');
+    1, 'Color','black','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % % plot feed direction on top of ccpoints

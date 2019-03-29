@@ -29,8 +29,8 @@ function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
         [tf, loc] = ismember(vertid_in_this_bucket(:,2:3), ccpoints_data(:,1:2), 'rows');
         ccp_in_this_bucket = ccpoints_data(loc, :);
 
-        all_y = unique(ccp_in_this_bucket(:,4));
-        if size(all_y,1) < 2
+        y = unique(ccp_in_this_bucket(:,4));
+        if size(y,1) < 2
             continue;
         end
 
@@ -38,10 +38,38 @@ function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
         %% within each line y, evaluate j value of ijk tangent vector
         %% 
         %% a. machinable                                    b. non-machinable              
-        %%    +++++++++  or  ------------ or +++++------       +++++++++++++ or ----------  or  ++++--------
-        %%    +++++++++  or  ------------    +++++------       -------------    ++++++++++      ----++++++++
+        %%    +++++++++  or  ------------ or +++++------       +++++++++ or ----------  or  ++++-------- or ------++++++
+        %%    +++++++++  or  ------------    +++++------       ---------    ++++++++++      ----++++++++    ++++++------
+        %%                                                       
+        %%                                                     +++++++++ or ++++++++++ or -------------- or -------------
+        %%                                                     ----+++++    +++++-----    ++++++--------    -------++++++
         %% 
-        %% 
+        j1 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(1), 10);
+        j2 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(2), 10);
+
+        is_positive = @(j) isempty(j(j < 0));
+        is_negative = @(j) isempty(j(j >= 0));
+        is_half_positive_negative = @(j) size(j(j < 0),1) > 0 & size(j(j >= 0),1) > 0;
+
+        is_both_positive = @(a,b) (is_positive(a) & is_positive(b));
+        is_both_negative = @(a,b) (is_negative(a) & is_negative(b)); 
+
+        if is_both_positive(j1, j2) || is_both_negative(j1, j2)
+            %% +++++++++  or  ------------
+            %% +++++++++  or  ------------
+            bucket_index(id_number, 4) = 0;
+        elseif (is_positive(j1) && is_negative(j2)) || (is_negative(j1) && is_positive(j2))
+            %% +++++++++ or ----------
+            %% ---------    ++++++++++
+            bucket_index(id_number, 4) = 1;
+        elseif is_half_positive_negative(j1) || is_half_positive_negative(j2)
+            %% any half +- will coonsider as non-machinable, even the following
+            %% +++++------
+            %% +++++------
+            %% because there's no way to make sure having exact boundary betwee + and -
+            bucket_index(id_number, 4) = 1;
+        end
+
     end
 end
 
