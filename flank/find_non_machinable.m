@@ -12,7 +12,7 @@ function [bucket_index, bucket_ccp, bucket_triangle] = find_non_machinable(bucke
     
     [bucket_index bucket_ccp bucket_triangle] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles);
 
-    run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle);
+    bucket_index = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle);
 end
 
 %% run_bucket:
@@ -22,7 +22,7 @@ end
 %%   bucket_ccp:
 %%   bucket_triangle:
 %% desc: put the result of machinability into bucket_index, in 0 or 1
-function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
+function output = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
     for i = 1:size(bucket_index, 1)
         id_number = bucket_index(i, 1);
         vertid_in_this_bucket = bucket_ccp(bucket_ccp(:,1) == id_number, :);
@@ -69,8 +69,9 @@ function run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
             %% because there's no way to make sure having exact boundary betwee + and -
             bucket_index(id_number, 4) = 1;
         end
-
     end
+
+    output = bucket_index;
 end
 
 %% init_bucket: create empty bucket with specified size

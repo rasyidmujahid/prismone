@@ -77,7 +77,8 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% visualize bucket
 [tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
 C = bucket_triangle(loc,1);
-trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); 
+% trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); 
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C.*bucket_index(C,4),10)); 
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
