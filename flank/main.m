@@ -25,8 +25,8 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
-step_over = 10
-retry_step_over = 10
+flank_step_over = 10
+point_step_over = 2
 tool_length = 40;
 tool_radius = 5;
 offset = [10 10 10];
@@ -59,7 +59,7 @@ end
 %% || vertex index 1 || vertex index 2 || x   y   z ||
 %% ================================================
 
-ccpoints_data = ccpoint(T(:,1:3), V, step_over);
+ccpoints_data = ccpoint(T(:,1:3), V, flank_step_over);
 
 %% ================================================
 %% build ccpoints normal vector, ccpoints tangential vector
@@ -72,31 +72,32 @@ ccpoints_data = ccpoint(T(:,1:3), V, step_over);
 %% ================================================
 %% find non-machinable area
 %% ================================================
-[bucket_index bucket_ccp bucket_triangle] = find_non_machinable(step_over, step_over, ccpoints_data, V, T);
+[bucket_index bucket_ccp bucket_triangle bucket_vertex] = find_non_machinable(flank_step_over, flank_step_over, ccpoints_data, V, T);
 
 %% visualize bucket
 [tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
 C = bucket_triangle(loc,1);
-% trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); 
-trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C.*bucket_index(C,4),10)); 
+
+figure('Name', 'Non-Machinable Bucket', 'NumberTitle', 'off');
+% trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); %% initial bucket
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C.*bucket_index(C,4),10)); %% non-machinable bucket
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 
 % %% ================================================
-% %% retry uncovered area with smaller step-over
+% %% point milling non-machinable area
 % %% ================================================
-
-% %% find possibly uncovered area
-% if ~isempty(reversed_ccpoints) && retry_step_over > 0
-%     %% recalculate ccpoints and normals
-%     retry_ccpoints_data = ccpoint(T(:,1:3), V, step_over, retry_step_over, unique(reversed_ccpoints(:,4)));
-%     retry_ccpoints_data(:,6:17) = 0;
-%     ccpoints_data = [ccpoints_data; retry_ccpoints_data];
-
-%     [ccpoints_data r_] = build_normal(ccpoints_data, V, T);
-% end
+bucket_index_not_machinable = bucket_index(bucket_index(:,4) > 0, :);
+if ~isempty(bucket_index_not_machinable)
+    [tf_t, loc_t] = ismember(bucket_triangle(:,1), bucket_index_not_machinable(:,1), 'rows');
+    T_not_mac = bucket_triangle(tf_t,2:7);
+    [tf_v, loc_v] = ismember(  bucket_vertex(:,1), bucket_index_not_machinable(:,1), 'rows');
+    V_not_mac = bucket_vertex(tf_v,2:4);
+    point_mill_ccp = ccpoint(T_not_mac(:,1:3), V, point_step_over);
+    [point_mill_ccp blah] = build_normal(point_mill_ccp, V, T_not_mac);
+end
 
 %% ================================================
 %% save to NC file
@@ -150,7 +151,9 @@ hold on;
 plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
+%% ================================================
 % plot normal vector on top of ccpoints
+%% ================================================
 figure('Name', 'Normal Vector', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 axis equal;
@@ -158,12 +161,17 @@ xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
-quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+%     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+%     3, 'Color','b','LineWidth',1,'LineStyle','-');
+quiver3(point_mill_ccp(:,3), point_mill_ccp(:,4), point_mill_ccp(:,5), ...
+    point_mill_ccp(:,6), point_mill_ccp(:,7), point_mill_ccp(:,8), ...
     3, 'Color','b','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
-% % plot tangen vector on top of ccpoints
+%% ================================================
+%% plot tangen vector on top of ccpoints
+%% ================================================
 figure('Name', 'Tool Orientation Vector (Cross Product) .2', 'NumberTitle', 'off');
 % trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 trisurf ( T(:,1:3), X, Y, Z, mod(C,10));
@@ -174,10 +182,12 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    1, 'Color','black','LineWidth',1,'LineStyle','-');
+    1, 'Color','white','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
-% % plot feed direction on top of ccpoints
+%% ================================================
+%% plot feed direction on top of ccpoints
+%% ================================================
 figure('Name', 'Feed Direction Vector .2', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 axis equal;

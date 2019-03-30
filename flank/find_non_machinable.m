@@ -5,12 +5,12 @@
 %%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
 %%   vertices
 %%   triangles
-function [bucket_index, bucket_ccp, bucket_triangle] = find_non_machinable(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = find_non_machinable(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     
     %% sort by Y then X
     ccpoints_data = sortrows(ccpoints_data, [4 3]);
     
-    [bucket_index bucket_ccp bucket_triangle] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles);
+    [bucket_index bucket_ccp bucket_triangle bucket_vertex] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles);
 
     bucket_index = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle);
 end
@@ -80,11 +80,12 @@ end
 %%  bucket_length
 %% returns:
 %%   
-function [bucket_index, bucket_ccp, bucket_triangle] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     max_min = maxmin(vertices);
     bucket_index = [];
     bucket_ccp = [];
     bucket_triangle = []; 
+    bucket_vertex = [];
 
     offset = 0;
     min_y = max_min(2,2) + offset;
@@ -149,6 +150,9 @@ function [bucket_index, bucket_ccp, bucket_triangle] = init_bucket(bucket_width,
             %% 
             vert_match_this_bucket = vertices(vertices(:,1) >= xj_1 & vertices(:,1) <= xj_2 & ...
                                               vertices(:,2) >= yi_1 & vertices(:,2) <= yi_2, :);
+
+            bucket_vertex = [bucket_vertex; horzcat(repmat(id_number, size(vert_match_this_bucket,1), 1), vert_match_this_bucket)];
+
             tri_match_this_bucket = unique([
                                             triangles(ismember(vertices(triangles(:,1),:), vert_match_this_bucket, 'rows'), :);
                                             triangles(ismember(vertices(triangles(:,2),:), vert_match_this_bucket, 'rows'), :);
