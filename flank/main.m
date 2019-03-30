@@ -148,7 +148,7 @@ hold on;
 %% plot cpp
 %% ================================================
 
-plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5);
+plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5, 'Color', 'white');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 %% ================================================
@@ -197,7 +197,7 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,15), ccpoints_data(:,16), ccpoints_data(:,17), ...
-    1, 'Color','r','LineWidth',1,'LineStyle','-');
+    1, 'Color','white','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 % plot extended tangen vector on top of ccpoints
