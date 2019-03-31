@@ -112,7 +112,7 @@ function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucke
     %% primary key
     id_number = 1;
 
-    for i = 1:size(all_y, 1) - 1
+    for i = 1:size(all_y, 1)
         yi_1 = all_y(i);
         yi_2 = yi_1 + bucket_width;
         indices1 = find_rows_in_matrix(yi_1, ccpoints_data(:, 4));
@@ -144,7 +144,7 @@ function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucke
 
             %% bucket_triangle structure:
             %%
-            %% id_number | tri_index
+            %% id_number | T()
             %%
             %% find 
             %% 
