@@ -74,17 +74,33 @@ ccpoints_data = ccpoint(T(:,1:3), V, flank_step_over);
 %% ================================================
 [bucket_index bucket_ccp bucket_triangle bucket_vertex] = find_non_machinable(flank_step_over, flank_step_over, ccpoints_data, V, T);
 
-%% visualize bucket
 [tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
-C = bucket_triangle(loc,1);
+%% bucket_id_numbers; for each triangle get bucket number to which it belongs.
+%% the bucket number will decide surf color
+bucket_id_numbers = bucket_triangle(loc,1);
 
-figure('Name', 'Non-Machinable Bucket', 'NumberTitle', 'off');
-% trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C,10)); %% initial bucket
-trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(C.*bucket_index(C,4),10)); %% non-machinable bucket
+%% ================================================
+%% visualize bucket
+%% ================================================
+figure('Name', 'Initial Bucket', 'NumberTitle', 'off');
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers,10)); %% initial bucket
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
+
+%% ================================================
+%% visualize bucket
+%% ================================================
+figure('Name', 'Non-Machinable Bucket', 'NumberTitle', 'off');
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers.*bucket_index(bucket_id_numbers,4),10)); %% non-machinable bucket
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+
+%% check missing vertex from bucket
+% plot3(missing_v_from_b(:,1), missing_v_from_b(:,2), missing_v_from_b(:,3), 'rx', 'MarkerSize', 5, 'Color', 'red');
 
 % %% ================================================
 % %% point milling non-machinable area
@@ -152,18 +168,30 @@ plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5, 'Co
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 %% ================================================
-% plot normal vector on top of ccpoints
+% plot normal vector on top of ccpoints, flank milling
 %% ================================================
-figure('Name', 'Normal Vector', 'NumberTitle', 'off');
+figure('Name', 'Flank Milling - Normal Vector', 'NumberTitle', 'off');
 trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
 axis equal;
 xlabel ( '--X axis--' );
 ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 hold on;
-% quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-%     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
-%     3, 'Color','b','LineWidth',1,'LineStyle','-');
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
+    3, 'Color','b','LineWidth',1,'LineStyle','-');
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+
+%% ================================================
+%% plot normal vector on top of ccpoints, point milling
+%% ================================================
+figure('Name', 'Point Milling - Normal Vector', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
 quiver3(point_mill_ccp(:,3), point_mill_ccp(:,4), point_mill_ccp(:,5), ...
     point_mill_ccp(:,6), point_mill_ccp(:,7), point_mill_ccp(:,8), ...
     3, 'Color','b','LineWidth',1,'LineStyle','-');
