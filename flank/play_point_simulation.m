@@ -13,7 +13,7 @@ function play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius,
     ylabel ( '--Y axis--' );
     zlabel ( '--Z axis--' );
     hold on;
-    % surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+    surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
     %% sort by Y then X
     point_mill_ccp = sortrows(point_mill_ccp, [4 3]);
