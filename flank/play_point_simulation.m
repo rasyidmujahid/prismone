@@ -13,7 +13,7 @@ function play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius,
     ylabel ( '--Y axis--' );
     zlabel ( '--Z axis--' );
     hold on;
-    surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+    % surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
     %% sort by Y then X
     point_mill_ccp = sortrows(point_mill_ccp, [4 3]);
@@ -55,12 +55,12 @@ function tool_path = draw_tool_path(T, X, Y, Z, bucket_index, point_mill_ccp, bu
 
         if p1(2) ~= p2(2)
             %% lies at different y
-            tool_path = [tool_path; [p1(1:2) lifting_height p1(4:6)]];
-            tool_path = [tool_path; [p2(1:2) lifting_height p2(4:6)]];
+            tool_path = [tool_path; [p1(1:2) p1(3) + lifting_height p1(4:6)]];
+            tool_path = [tool_path; [p2(1:2) p2(3) + lifting_height p2(4:6)]];
         elseif abs(p1(1) - p2(1)) >= bucket_width - 0.5
             %% jump between x
-            tool_path = [tool_path; [p1(1:2) lifting_height p1(4:6)]];
-            tool_path = [tool_path; [p2(1:2) lifting_height p2(4:6)]];
+            tool_path = [tool_path; [p1(1:2) p1(3) + lifting_height p1(4:6)]];
+            tool_path = [tool_path; [p2(1:2) p2(3) + lifting_height p2(4:6)]];
         end
     end
     %% the last one
