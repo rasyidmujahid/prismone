@@ -2,12 +2,13 @@
 %% Toolpath simulation + gouging detection
 %% ================================================
 
-%% playa_flank_simulation: tool path simulation
+%% play_flank_simulation: tool path simulation
 function play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
 
     X = V(:, 1);
     Y = V(:, 2);
     Z = V(:, 3);
+    elevation = -30;
 
     f = figure('Name', 'Flank Simulation', 'NumberTitle', 'off');
     trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
@@ -16,7 +17,7 @@ function play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
     ylabel ( '--Y axis--' );
     zlabel ( '--Z axis--' );
     hold on;
-    surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+    surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight;
 
 
     %% sort by Y then X

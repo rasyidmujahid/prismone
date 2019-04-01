@@ -194,7 +194,7 @@ zlabel ( '--Z axis--' );
 hold on;
 quiver3(point_mill_ccp(:,3), point_mill_ccp(:,4), point_mill_ccp(:,5), ...
     point_mill_ccp(:,6), point_mill_ccp(:,7), point_mill_ccp(:,8), ...
-    5, 'Color','b','LineWidth',1,'LineStyle','-');
+    3, 'Color','b','LineWidth',1,'LineStyle','-');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 %% ================================================
@@ -244,4 +244,4 @@ ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 
 play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length);
 
-play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index);
+play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
