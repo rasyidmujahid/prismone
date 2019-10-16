@@ -105,6 +105,7 @@ zlabel ( '--Z axis--' );
 %% ================================================
 %% point milling non-machinable area
 %% ================================================
+point_mill_ccp = [];
 bucket_index_not_machinable = bucket_index(bucket_index(:,4) > 0, :);
 if ~isempty(bucket_index_not_machinable)
     [tf_t, loc_t] = ismember(bucket_triangle(:,1), bucket_index_not_machinable(:,1), 'rows');
@@ -244,4 +245,6 @@ ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 
 play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length);
 
-play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
+if ~isempty(point_mill_ccp) 
+    play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
+end
