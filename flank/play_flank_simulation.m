@@ -3,7 +3,9 @@
 %% ================================================
 
 %% play_flank_simulation: tool path simulation
-function play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
+function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
+
+    result = [];
 
     X = V(:, 1);
     Y = V(:, 2);
@@ -30,9 +32,9 @@ function play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
 
     for i = 1:size(ccpoints_data,1)-1
 
-        % if ccpoints_data(i,4) < 140 || ccpoints_data(i,4) > 180
-        %     continue;
-        % end
+        if ccpoints_data(i,4) < 50 || ccpoints_data(i,4) > 100
+            continue;
+        end
 
         set(0,'CurrentFigure',f);
 
@@ -115,77 +117,82 @@ function play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length)
         % ================================
         % gouging avoidance
         % ================================
-        iteration = 0;
-        max_iteration = 20;
-        tetha = 0.01;
-        incremental_tetha = 0.01;
-        r = []; %% working rotation matrix
-        while (CL > 0) && (iteration < max_iteration)
-            %% ccpoints_data:
-            %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
+        % iteration = 0;
+        % max_iteration = 3;
+        % tetha = 1;
+        % incremental_tetha = 1;
+        % r = [1]; %% working rotation matrix
+        % while (CL > 0) && (iteration < max_iteration)
+        %     %% ccpoints_data:
+        %     %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
 
-            %% taking feed direction vector as rotation axis, and θ = incremental angle.
-            feed_direction = ccpoints_data(i,15:17);
+        %     %% taking feed direction vector as rotation axis, and θ = incremental angle.
+        %     feed_direction = ccpoints_data(i,15:17);
             
-            %% rotation_matrix results 3x3 matrix
-            rotation_matrix = vrrotvec2mat([feed_direction deg2rad(tetha)]);
-            r = rotation_matrix;
-            %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
-            %% [r1 r2 r3 0]
-            %% [r4 r5 r6 0]
-            %% [r7 r8 r9 0]
-            %% [0  0  0  1]
+        %     %% rotation_matrix results 3x3 matrix
+        %     rotation_matrix = vrrotvec2mat([feed_direction deg2rad(tetha)]);
+        %     r = rotation_matrix;
+        %     %% https://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+        %     %% [r1 r2 r3 0]
+        %     %% [r4 r5 r6 0]
+        %     %% [r7 r8 r9 0]
+        %     %% [0  0  0  1]
 
-            %% TRANS parameters
-            %% [ e4  e5  e6 e1]
-            %% [ e7  e8  e9 e2]
-            %% [e10 e11 e12 e3]
-            %% [  0   0   0  1]
-            %% adjust to trans1 = (e1, ..., e12)
-            trans1 = [0 0 0 r(1,:) r(2,:) r(3,:)];
-            CL = coldetect(cylinder_tri, working_part, trans1, trans2);
+        %     %% TRANS parameters
+        %     %% [ e4  e5  e6 e1]
+        %     %% [ e7  e8  e9 e2]
+        %     %% [e10 e11 e12 e3]
+        %     %% [  0   0   0  1]
+        %     %% adjust to trans1 = (e1, ..., e12)
+        %     trans1 = [0 0 0 r(1,:) r(2,:) r(3,:)];
+        %     CL = coldetect(cylinder_tri, working_part, trans1, trans2);
 
-            tetha = tetha + incremental_tetha;
-            iteration = iteration + 1;
-        end
+        %     tetha = tetha + incremental_tetha;
+        %     iteration = iteration + 1;
+        % end
 
-        %% print last tetha
-        % tetha
+        % %% print last tetha
+        % % tetha
 
-        %% if gouging avoidance succeeded, mark cylinder as green
-        if ~isempty(r)
+        % %% if gouging avoidance succeeded, mark cylinder as green
+        % if ~isempty(r)
 
-            delete(cylinder_handle);
-            delete(cylinder_end_1);
-            delete(cylinder_end_2);
+        %     delete(cylinder_handle);
+        %     delete(cylinder_end_1);
+        %     delete(cylinder_end_2);
 
-            %% new tangent orientation
-            % r %% display 'r' rotation_matrix
-            tool_orientation_before_gouging_avoidance = ccpoints_data(i,9:11);
-            %% rotate tangent vector by rotation matrix r
-            %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
-            %% xy' = r*xy where xy is column vector.
-            ccpoints_data(i,9:11) = (r * ccpoints_data(i,9:11)')';
-            tool_orientation_after_vcollide = ccpoints_data(i,9:11);
+        %     %% new tangent orientation
+        %     % r %% display 'r' rotation_matrix
+        %     tool_orientation_before_gouging_avoidance = ccpoints_data(i,9:11);
 
-            %% adjust points x2 y2 z2 following new tangent orientation
-            ccpoints_data(i,12:14) = ccpoints_data(i,3:5) + tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
+        %     %% rotate tangent vector by rotation matrix r
+        %     %% Ref. https://en.wikipedia.org/wiki/Rotation_matrix, the rule is following
+        %     %% xy' = r*xy where xy is column vector.
+        %     ccpoints_data(i,9:11) = (r * ccpoints_data(i,9:11)')';
+        %     tool_orientation_after_vcollide = ccpoints_data(i,9:11);
 
-            %% also do normal vector orientation
-            ccpoints_data(i,6:8) = (r * ccpoints_data(i,6:8)')';
+        %     %% adjust points x2 y2 z2 following new tangent orientation
+        %     ccpoints_data(i,12:14) = ccpoints_data(i,3:5) + tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
 
-            %% Redraw after free gouging trial
-            p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-            p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-            [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+        %     %% also do normal vector orientation
+        %     ccpoints_data(i,6:8) = (r * ccpoints_data(i,6:8)')';
 
-            %% if free gouging, mark cylinder as green, otherwise keep red
-            if CL == 0
-                set(cylinder_handle, 'FaceColor', 'g');
-            else
-                set(cylinder_handle, 'FaceColor', 'r');
-            end
-            drawnow;
-        end
+        %     %% Redraw after free gouging trial
+        %     p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+        %     p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+        %     [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+
+        %     %% if free gouging, mark cylinder as green, otherwise keep red
+        %     if CL == 0
+        %         set(cylinder_handle, 'FaceColor', 'g');
+        %     else
+        %         set(cylinder_handle, 'FaceColor', 'r');
+        %     end
+        %     drawnow;
+        % end
+
+        ccpoints_data(i,18) = CL;
     end
+
+    result = ccpoints_data;
 end
