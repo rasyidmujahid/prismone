@@ -3,7 +3,7 @@
 %% ================================================
 
 % folder = 'C:\Repo\Project\Glash\parts\nonmachinable';
-% filename = 'model4b';
+% filename = 'model4a';
 
 folder = 'C:\Repo\Project\Glash\parts';
 filename = '0_0075stlasc';
@@ -25,12 +25,12 @@ end
 %% ================================================
 %% machining parameters
 %% ================================================
-flank_step_over = 20
-point_step_over = 2
-tool_length = 40;
+flank_step_over = 10
+point_step_over = 5
+tool_length = 20;
 tool_radius = 5;
 offset = [10 10 10];
-effective_tool_length = 40;
+effective_tool_length = 20;
 elevation = -30;
 
 %% ================================================
@@ -69,59 +69,8 @@ ccpoints_data = ccpoint(T(:,1:3), V, flank_step_over);
 
 [ccpoints_data reversed_ccpoints] = build_normal(ccpoints_data, V, T);
 
-%% ================================================
-%% find non-machinable area
-%% ================================================
-[bucket_index bucket_ccp bucket_triangle bucket_vertex] = find_non_machinable(flank_step_over, flank_step_over, ccpoints_data, V, T);
-
-[tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
-%% bucket_id_numbers; for each triangle get bucket number to which it belongs.
-%% the bucket number will decide surf color
-bucket_id_numbers = bucket_triangle(loc,1);
-
-%% ================================================
-%% visualize bucket
-%% ================================================
-figure('Name', 'Initial Bucket', 'NumberTitle', 'off');
-trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers,10)); %% initial bucket
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-
-%% ================================================
-%% visualize bucket
-%% ================================================
-figure('Name', 'Non-Machinable Bucket', 'NumberTitle', 'off');
-trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers.*bucket_index(bucket_id_numbers,4),10)); %% non-machinable bucket
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-
 %% check missing vertex from bucket
 % plot3(missing_v_from_b(:,1), missing_v_from_b(:,2), missing_v_from_b(:,3), 'rx', 'MarkerSize', 5, 'Color', 'red');
-
-%% ================================================
-%% point milling non-machinable area
-%% ================================================
-point_mill_ccp = [];
-bucket_index_not_machinable = bucket_index(bucket_index(:,4) > 0, :);
-if ~isempty(bucket_index_not_machinable)
-    [tf_t, loc_t] = ismember(bucket_triangle(:,1), bucket_index_not_machinable(:,1), 'rows');
-    T_not_mac = bucket_triangle(tf_t,2:7);
-    [tf_v, loc_v] = ismember(  bucket_vertex(:,1), bucket_index_not_machinable(:,1), 'rows');
-    V_not_mac = bucket_vertex(tf_v,2:4);
-    point_mill_ccp = ccpoint(T_not_mac(:,1:3), V, point_step_over);
-    [point_mill_ccp blah] = build_normal(point_mill_ccp, V, T_not_mac);
-end
-
-%% ================================================
-%% save to NC file
-%% ================================================
-nc = save_nc_file(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
 %% leave unique ccpoints only. ccpoints at triangle vertex
 %% will happen to be duplicated
@@ -164,7 +113,6 @@ hold on;
 %% ================================================
 %% plot cpp
 %% ================================================
-
 plot3(cc_points(:,1), cc_points(:,2), cc_points(:,3), 'rx', 'MarkerSize', 5, 'Color', 'white');
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
@@ -181,38 +129,7 @@ hold on;
 quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,6), ccpoints_data(:,7), ccpoints_data(:,8), ...
     3, 'Color','b','LineWidth',1,'LineStyle','-');
-surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
-
-%% ================================================
-%% plot normal vector on top of ccpoints, point milling
-%% ================================================
-figure('Name', 'Point Milling - Normal Vector', 'NumberTitle', 'off');
-trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-quiver3(point_mill_ccp(:,3), point_mill_ccp(:,4), point_mill_ccp(:,5), ...
-    point_mill_ccp(:,6), point_mill_ccp(:,7), point_mill_ccp(:,8), ...
-    3, 'Color','b','LineWidth',1,'LineStyle','-');
-surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
-
-%% ================================================
-%% plot tangen vector on top of ccpoints
-%% ================================================
-figure('Name', 'Tool Orientation Vector (Cross Product) .2', 'NumberTitle', 'off');
-% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
-trisurf ( T(:,1:3), X, Y, Z, mod(bucket_id_numbers,10));
-axis equal;
-xlabel ( '--X axis--' );
-ylabel ( '--Y axis--' );
-zlabel ( '--Z axis--' );
-hold on;
-quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
-    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
-    1, 'Color','white','LineWidth',1,'LineStyle','-');
-surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight
 
 %% ================================================
 %% plot feed direction on top of ccpoints
@@ -243,8 +160,102 @@ ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
 ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 
-play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length);
+ccpoints_data = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length);
+
+%% ================================================
+%% vcollide result
+%% ccpoints_data:
+%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
+%% ================================================
+
+%% ================================================
+%% find non-machinable area
+%% ================================================
+[bucket_index bucket_ccp bucket_triangle bucket_vertex] = find_non_machinable(flank_step_over, flank_step_over, ccpoints_data, V, T);
+
+[tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
+%% bucket_id_numbers; for each triangle get bucket number to which it belongs.
+%% the bucket number will decide surf color
+bucket_id_numbers = bucket_triangle(loc,1);
+
+%% ================================================
+%% visualize bucket
+%% ================================================
+figure('Name', 'Initial Bucket', 'NumberTitle', 'off');
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers,10)); %% initial bucket
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+
+%% ================================================
+%% visualize non-machinable bucket
+%% ================================================
+figure('Name', 'Non-Machinable Bucket', 'NumberTitle', 'off');
+trisurf (T(:,1:3), V(:,1), V(:,2), V(:,3), mod(bucket_id_numbers.*bucket_index(bucket_id_numbers,4),10)); %% non-machinable bucket
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+
+%% ================================================
+%% point milling non-machinable area
+%% ================================================
+point_mill_ccp = [];
+bucket_index_not_machinable = bucket_index(bucket_index(:,4) > 0, :);
+if ~isempty(bucket_index_not_machinable)
+    [tf_t, loc_t] = ismember(bucket_triangle(:,1), bucket_index_not_machinable(:,1), 'rows');
+    T_not_mac = bucket_triangle(tf_t,2:7);
+    [tf_v, loc_v] = ismember(  bucket_vertex(:,1), bucket_index_not_machinable(:,1), 'rows');
+    V_not_mac = bucket_vertex(tf_v,2:4);
+    point_mill_ccp = ccpoint(T_not_mac(:,1:3), V, point_step_over);
+    [point_mill_ccp blah] = build_normal(point_mill_ccp, V, T_not_mac);
+end
+
+%% ================================================
+%% plot normal vector on top of ccpoints, point milling
+%% ================================================
+figure('Name', 'Point Milling - Normal Vector', 'NumberTitle', 'off');
+trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3(point_mill_ccp(:,3), point_mill_ccp(:,4), point_mill_ccp(:,5), ...
+    point_mill_ccp(:,6), point_mill_ccp(:,7), point_mill_ccp(:,8), ...
+    3, 'Color','b','LineWidth',1,'LineStyle','-');
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight
+
+%% ================================================
+%% plot tangen vector on top of ccpoints
+%% ================================================
+figure('Name', 'Tool Orientation Vector (Cross Product) .2', 'NumberTitle', 'off');
+% trisurf ( T(:,1:3), X, Y, Z, 'FaceColor', 'none' );
+trisurf ( T(:,1:3), X, Y, Z, mod(bucket_id_numbers,10));
+axis equal;
+xlabel ( '--X axis--' );
+ylabel ( '--Y axis--' );
+zlabel ( '--Z axis--' );
+hold on;
+quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
+    1, 'Color','white','LineWidth',1,'LineStyle','-');
+surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
+
+%% ================================================
+%% save to NC file
+%% ================================================
+nc = save_nc_file(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
+    ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
+    offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
 if ~isempty(point_mill_ccp) 
-    play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
+    play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, ...
+        bucket_index, flank_step_over, flank_step_over);
 end
+
+%% TODO
+%% Cut unmachinable area after gouging detecting, by using point milling
+%% Tool path 2 options: sort by mill type (flat-point), sort by coordinate
+%% Generate NC file, linear layering

@@ -2,22 +2,24 @@
 %% params:
 %%   bucket_width: set to step-over
 %%   bucket_length: set to step-over
-%%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
+%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
 %%   vertices
 %%   triangles
-function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = find_non_machinable(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = find_non_machinable(...
+        bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     
     %% sort by Y then X
     ccpoints_data = sortrows(ccpoints_data, [4 3]);
     
-    [bucket_index bucket_ccp bucket_triangle bucket_vertex] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles);
+    [bucket_index bucket_ccp bucket_triangle bucket_vertex] = init_bucket(...
+        bucket_width, bucket_length, ccpoints_data, vertices, triangles);
 
     bucket_index = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle);
 end
 
 %% run_bucket:
 %% params:
-%%   ccpoints_data: || v-idx1 || v-idx2 || x   y   z || normal i j k || tangent i j k ||
+%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
 %%   bucket_index:
 %%   bucket_ccp:
 %%   bucket_triangle:
@@ -44,6 +46,10 @@ function output = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_tri
         %%                                                     +++++++++ or ++++++++++ or -------------- or -------------
         %%                                                     ----+++++    +++++-----    ++++++--------    -------++++++
         %% 
+        %% c. non-machinable, check against vcollide result, 0 is free gouging, 1 otherwise
+        %%    000000000000
+        %%    000001110000
+         
         j1 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(1), 10);
         j2 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(2), 10);
 
@@ -52,12 +58,23 @@ function output = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_tri
         is_half_positive_negative = @(j) size(j(j < 0),1) > 0 & size(j(j >= 0),1) > 0;
 
         is_both_positive = @(a,b) (is_positive(a) & is_positive(b));
-        is_both_negative = @(a,b) (is_negative(a) & is_negative(b)); 
+        is_both_negative = @(a,b) (is_negative(a) & is_negative(b));
+
+        %% 0 is machinable, 1 is non-machinable
 
         if is_both_positive(j1, j2) || is_both_negative(j1, j2)
             %% +++++++++  or  ------------
             %% +++++++++  or  ------------
             bucket_index(id_number, 4) = 0;
+
+            cl1 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(1), 18);
+            cl2 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(2), 18);
+
+            is_collide = @(cl) sum(cl) > 0;
+
+            if is_collide(cl1) || is_collide(cl2)
+                bucket_index(id_number, 4) = 1;
+            end
         elseif (is_positive(j1) && is_negative(j2)) || (is_negative(j1) && is_positive(j2))
             %% +++++++++ or ----------
             %% ---------    ++++++++++
@@ -80,7 +97,9 @@ end
 %%  bucket_length
 %% returns:
 %%   
-function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucket(bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucket(...
+    bucket_width, bucket_length, ccpoints_data, vertices, triangles)
+    
     max_min = maxmin(vertices);
     bucket_index = [];
     bucket_ccp = [];
@@ -134,8 +153,10 @@ function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucke
             %%      find all cc points that fall between x1y1 and x2y1 inclusive
             %% and, find all cc points that fall between x1y2 and x2y2 inclusive
             %%
-            ccp_match_this_bucket = [ccpoints_data_at_y1(ccpoints_data_at_y1(:,3) >= xj_1 & ccpoints_data_at_y1(:,3) <= xj_2, 1:2); 
-                                     ccpoints_data_at_y2(ccpoints_data_at_y2(:,3) >= xj_1 & ccpoints_data_at_y2(:,3) <= xj_2, 1:2)];
+            ccp_match_this_bucket = [ccpoints_data_at_y1(ccpoints_data_at_y1(:,3) >= xj_1 & ...
+                                        ccpoints_data_at_y1(:,3) <= xj_2, 1:2); 
+                                     ccpoints_data_at_y2(ccpoints_data_at_y2(:,3) >= xj_1 & ...
+                                        ccpoints_data_at_y2(:,3) <= xj_2, 1:2)];
 
             if ~isempty(ccp_match_this_bucket)
                 ccp_match_this_bucket = horzcat(repmat(id_number, size(ccp_match_this_bucket,1), 1), ccp_match_this_bucket);
