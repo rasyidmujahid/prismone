@@ -41,13 +41,13 @@ end
 %% ================================================
 %% Roughing parameters
 %% ================================================
-density = 2; % density determines how wide points cloud
+density = 10; % density determines how wide points cloud
               % will be, horizontal stepover is also
               % following this density.
 horizontal_stepover = density;
-vertical_stepover   = 2;
+vertical_stepover   = 10;
 tool_length = 50;
-tool_radius = 3;
+tool_radius = 10;
 offset = [10 10 10];
 effective_tool_length = 10;
 
