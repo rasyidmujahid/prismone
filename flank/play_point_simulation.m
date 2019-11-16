@@ -37,7 +37,7 @@ function play_tool_simulation(point_mill_ccp, tool_length, tool_radius)
         p1 = point_mill_ccp(i,1:3);
         p2 = point_mill_ccp(i,1:3) + tool_length * point_mill_ccp(i,4:6) / norm(point_mill_ccp(i,4:6));
         [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
-        pause(0.1);
+        % pause(0.1);
         drawnow;
     end
 end
