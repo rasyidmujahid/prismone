@@ -160,7 +160,7 @@ ccpoints_data(:,12) = ccpoints_data(:,3) + extended_tangen_normal(:,1);
 ccpoints_data(:,13) = ccpoints_data(:,4) + extended_tangen_normal(:,2);
 ccpoints_data(:,14) = ccpoints_data(:,5) + extended_tangen_normal(:,3);
 
-ccpoints_data = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length);
+ccpoints_data = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length, 0, 0);
 
 %% ================================================
 %% vcollide result
@@ -174,6 +174,7 @@ ccpoints_data = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_len
 [bucket_index bucket_ccp bucket_triangle bucket_vertex] = find_non_machinable(flank_step_over, flank_step_over, ccpoints_data, V, T);
 
 [tf, loc] = ismember(T(:,1:3), bucket_triangle(:,2:4), 'rows');
+
 %% bucket_id_numbers; for each triangle get bucket number to which it belongs.
 %% the bucket number will decide surf color
 bucket_id_numbers = bucket_triangle(loc,1);
@@ -199,17 +200,17 @@ ylabel ( '--Y axis--' );
 zlabel ( '--Z axis--' );
 
 %% ================================================
-%% point milling non-machinable area
+%% split by machinable and non-machinable area
 %% ================================================
 point_mill_ccp = [];
 bucket_index_not_machinable = bucket_index(bucket_index(:,4) > 0, :);
 if ~isempty(bucket_index_not_machinable)
     [tf_t, loc_t] = ismember(bucket_triangle(:,1), bucket_index_not_machinable(:,1), 'rows');
-    T_not_mac = bucket_triangle(tf_t,2:7);
+    T_not_machinable = bucket_triangle(tf_t,2:7);
     [tf_v, loc_v] = ismember(  bucket_vertex(:,1), bucket_index_not_machinable(:,1), 'rows');
-    V_not_mac = bucket_vertex(tf_v,2:4);
-    point_mill_ccp = ccpoint(T_not_mac(:,1:3), V, point_step_over);
-    [point_mill_ccp blah] = build_normal(point_mill_ccp, V, T_not_mac);
+    V_not_machinable = bucket_vertex(tf_v,2:4);
+    point_mill_ccp = ccpoint(T_not_machinable(:,1:3), V, point_step_over);
+    [point_mill_ccp blah] = build_normal(point_mill_ccp, V, T_not_machinable);
 end
 
 %% ================================================
@@ -244,18 +245,21 @@ quiver3(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
 surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight 
 
 %% ================================================
+%% Point milling + flank simulation
+%% ================================================
+if ~isempty(point_mill_ccp) 
+    play_toolpath_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, ...
+        bucket_index, flank_step_over, flank_step_over);
+end
+
+%% ================================================
 %% save to NC file
 %% ================================================
 nc = save_nc_file(ccpoints_data(:,3), ccpoints_data(:,4), ccpoints_data(:,5), ...
     ccpoints_data(:,9), ccpoints_data(:,10), ccpoints_data(:,11), ...
     offset(1), offset(2), offset(3), effective_tool_length, 'table', filename);
 
-if ~isempty(point_mill_ccp) 
-    play_point_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, ...
-        bucket_index, flank_step_over, flank_step_over);
-end
-
 %% TODO
-%% Cut unmachinable area after gouging detecting, by using point milling
-%% Tool path 2 options: sort by mill type (flat-point), sort by coordinate
+%% DONE. Cut unmachinable area after gouging detecting, by using point milling
+%% Combined tool path with 2 options: sort by mill type (flat-point), sort by coordinate
 %% Generate NC file, linear layering
