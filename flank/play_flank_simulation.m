@@ -3,6 +3,7 @@
 %% ================================================
 
 %% play_flank_simulation: tool path simulation
+%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest || CL
 function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_length, ...
         is_simulation_enabled, is_gouging_avoidance_enabled)
 
@@ -32,9 +33,9 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
 
     for i = 1:size(ccpoints_data,1)-1
 
-        if ccpoints_data(i,4) < 50 || ccpoints_data(i,4) > 100
-            continue;
-        end
+        % if ccpoints_data(i,4) < 60 || ccpoints_data(i,4) > 80
+        %     continue;
+        % end
 
         if is_simulation_enabled
             set(0,'CurrentFigure',f);
@@ -89,7 +90,15 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
         
         p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
         p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-        [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+        if ccpoints_data(i,7) > 0
+            color = 'y'; else color = 'm'; end;
+        [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, color, 1 ,0);
+
+        %% keep the center point as another ccp
+        %% ccpoints_data:
+        %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || p1 p1 p1 || p2 p2 p2
+        ccpoints_data(i,18:20) = p1;
+        ccpoints_data(i,21:23) = p2;
 
         if is_simulation_enabled
             drawnow;
@@ -123,7 +132,7 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
             r = [1]; %% working rotation matrix
             while (CL > 0) && (iteration < max_iteration)
                 %% ccpoints_data:
-                %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k
+                %% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest
 
                 %% taking feed direction vector as rotation axis, and θ = incremental angle.
                 feed_direction = ccpoints_data(i,15:17);
@@ -173,13 +182,18 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
                 %% adjust points x2 y2 z2 following new tangent orientation
                 ccpoints_data(i,12:14) = ccpoints_data(i,3:5) + tool_length / norm(ccpoints_data(i,9:11)) * ccpoints_data(i,9:11);
 
-                %% also do normal vector orientation
+                %% also adjust normal vector orientation
                 ccpoints_data(i,6:8) = (r * ccpoints_data(i,6:8)')';
 
                 %% Redraw after free gouging trial
                 p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
                 p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
-                [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, 'y', 1 ,0);
+                if ccpoints_data(i,7) > 0
+                    color = 'y'; else color = 'm'; end;
+                [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, color, 1 ,0);
+
+                ccpoints_data(i,18:20) = p1;
+                ccpoints_data(i,21:23) = p2;
 
                 %% if free gouging, mark cylinder as green, otherwise keep red
                 if CL == 0
@@ -191,7 +205,7 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
             end
         end %% is_gouging_avoidance_enabled
 
-        ccpoints_data(i,18) = CL;
+        ccpoints_data(i,24) = CL;
     end %% for
 
     result = ccpoints_data;
