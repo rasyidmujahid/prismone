@@ -2,7 +2,7 @@
 %% params:
 %%   bucket_width: set to step-over
 %%   bucket_length: set to step-over
-%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
+%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest || CL
 %%   vertices
 %%   triangles
 function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = find_non_machinable(...
@@ -19,10 +19,12 @@ end
 
 %% run_bucket:
 %% params:
-%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
+%%   ccpoints_data: || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest || CL
 %%   bucket_index:
 %%   bucket_ccp:
 %%   bucket_triangle:
+%% returns
+%%   bucket_index   || id || x1 || y1 || machinable, 0 is machinable (flank), 1 is non-machinable (point)
 %% desc: put the result of machinability into bucket_index, in 0 or 1
 function output = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_triangle)
     for i = 1:size(bucket_index, 1)
@@ -60,15 +62,18 @@ function output = run_bucket(ccpoints_data, bucket_index, bucket_ccp, bucket_tri
         is_both_positive = @(a,b) (is_positive(a) & is_positive(b));
         is_both_negative = @(a,b) (is_negative(a) & is_negative(b));
 
-        %% 0 is machinable, 1 is non-machinable
+        %% assign value to mark machinable buckets
+        %% 0 is machinable (flank), 1 is non-machinable (point)
 
         if is_both_positive(j1, j2) || is_both_negative(j1, j2)
             %% +++++++++  or  ------------
             %% +++++++++  or  ------------
             bucket_index(id_number, 4) = 0;
 
-            cl1 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(1), 18);
-            cl2 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(2), 18);
+            %% check as well if the bucket is free gouging
+            %% if collided, then non-machinable
+            cl1 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(1), 24);
+            cl2 = ccp_in_this_bucket(ccp_in_this_bucket(:,4) == y(2), 24);
 
             is_collide = @(cl) sum(cl) > 0;
 
@@ -96,7 +101,7 @@ end
 %%  bucket_width
 %%  bucket_length
 %% returns:
-%%   
+%%   bucket_index  id || x1 || y1
 function [bucket_index, bucket_ccp, bucket_triangle, bucket_vertex] = init_bucket(...
     bucket_width, bucket_length, ccpoints_data, vertices, triangles)
     
