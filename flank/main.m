@@ -73,8 +73,7 @@ ccpoints_data = ccpoint(T(:,1:3), V, flank_step_over);
 % plot3(missing_v_from_b(:,1), missing_v_from_b(:,2), missing_v_from_b(:,3), 'rx', 'MarkerSize', 5, 'Color', 'red');
 
 %% leave unique ccpoints only. ccpoints at triangle vertex
-%% will happen to be duplicated
-%% ccpoints
+%% will happen to be duplicated ccpoints
 cc_points = unique(ccpoints_data(:,3:5), 'rows');
 
 %% ================================================================
@@ -165,7 +164,7 @@ ccpoints_data = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_len
 %% ================================================
 %% vcollide result
 %% ccpoints_data:
-%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || CL
+%% || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest || CL
 %% ================================================
 
 %% ================================================
@@ -248,8 +247,8 @@ surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight
 %% Point milling + flank simulation
 %% ================================================
 if ~isempty(point_mill_ccp) 
-    play_toolpath_simulation(T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, ...
-        bucket_index, flank_step_over, flank_step_over);
+    [point_tool_path flank_tool_path] = play_toolpath_simulation(...
+        T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
 end
 
 %% ================================================
