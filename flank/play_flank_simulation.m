@@ -20,7 +20,7 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
     ylabel ( '--Y axis--' );
     zlabel ( '--Z axis--' );
     hold on;
-    surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight;
+    % surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight;
 
     %% sort by Y then X
     ccpoints_data = sortrows(ccpoints_data, [4 3]);
