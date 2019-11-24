@@ -96,7 +96,7 @@ function bucket_ccp = bucketize_ccp(bucket_index, milling_ccpoints, bucket_width
     disp('bucketize_ccp...');
     bucket_ccp = [];
 
-    if strcmp(mode, 'machinable') == 0
+    if strcmp(mode, 'machinable')
         filtered_bucket_index = bucket_index(bucket_index(:,4) == 0, :);
     else
         filtered_bucket_index = bucket_index(bucket_index(:,4) > 0, :);
