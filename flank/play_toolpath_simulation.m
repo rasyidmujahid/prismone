@@ -62,13 +62,13 @@ function play_tool_simulation(point_tool_path, tool_length, tool_radius)
         end
         
         [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, color, 1 ,0);
-        pause(0.1);
+        % pause(0.1);
         drawnow;
     end
 end
 
 %% tool_path: draw tool path
-%% x1 y1 z1 ||  normal i j k || cylinder origin || cylinder dest
+%% x1 y1 z1 ||  tool orientation i j k || cylinder origin || cylinder dest
 function tool_path = draw_tool_path(T, X, Y, Z, bucket_index, source_mill_ccp, ...
         bucket_width, bucket_length, color, mode)
 
