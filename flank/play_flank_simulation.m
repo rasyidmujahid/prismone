@@ -102,13 +102,13 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
         trans2 = [0 0 0 1 0 0 0 1 0 0 0 1];
         CL = coldetect(cylinder_tri, working_part, trans1, trans2);
 
-        %% mark gouging as red cylinder. if no gouging, clear cylinder.
+        %% if no gouging, clear cylinder, otherwise color based on tool's j to see tool switch
         if CL == 0
             delete(cylinder_handle);
             delete(cylinder_end_1);
             delete(cylinder_end_2);
         else
-            set(cylinder_handle, 'FaceColor', 'r');
+            set(cylinder_handle, 'FaceColor', color);
             drawnow;
         end
 
