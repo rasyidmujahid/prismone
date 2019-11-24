@@ -246,6 +246,8 @@ surf2solid(T(:,1:3),V, 'Elevation', elevation); axis image; camlight; camlight
 %% ================================================
 %% Point milling + flank simulation
 %% ================================================
+%%      point_tool_path: x1 y1 z1 ||  tool orientation i j k
+%%      flank_tool_path: x1 y1 z1 ||  tool orientation i j k || cylinder origin || cylinder dest
 if ~isempty(point_mill_ccp) 
     [point_tool_path flank_tool_path] = play_toolpath_simulation(...
         T, V, ccpoints_data, point_mill_ccp, tool_radius, tool_length, bucket_index, flank_step_over, flank_step_over);
