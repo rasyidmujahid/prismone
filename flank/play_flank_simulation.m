@@ -29,6 +29,14 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
     cylinder_handle = [];
     cylinder_end_1 = [];
     cylinder_end_2 = [];
+
+    cylinder_handle_arbor = [];
+    cylinder_end_1_arbor = [];
+    cylinder_end_2_arbor = [];
+
+    arbor_radius = tool_radius + 5;
+    arbor_length = tool_length;
+
     CL = 0;
 
     for i = 1:size(ccpoints_data,1)-1
@@ -85,14 +93,17 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
         end
 
         %% ================================
-        %% simulate cylinder
+        %% simulate cylinder of tool and arbor
         %% ================================
         
         p1 = ccpoints_data(i,3:5) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
         p2 = ccpoints_data(i,12:14) + tool_radius * ccpoints_data(i,6:8) / norm(ccpoints_data(i,6:8));
+        p3 = p2 + ccpoints_data(i,9:11) * arbor_length;
         if ccpoints_data(i,7) > 0
-            color = 'y'; else color = 'm'; end;
+            color = 'y'; else color = 'm';
+        end
         [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, color, 1 ,0);
+        [cylinder_handle_arbor cylinder_end_1_arbor cylinder_end_2_arbor] = Cylinder(p2, p3, arbor_radius, 20, color, 1 ,0);
 
         %% keep the center point as another ccp
         %% ccpoints_data:
@@ -111,11 +122,18 @@ function result = play_flank_simulation(T, V, ccpoints_data, tool_radius, tool_l
         trans2 = [0 0 0 1 0 0 0 1 0 0 0 1];
         CL = coldetect(cylinder_tri, working_part, trans1, trans2);
 
+        %% TODO
+        %% calculate CL for cylinder_handle_arbor to detect gouging by arbor
+
         %% if no gouging, clear cylinder, otherwise color based on tool's j to see tool switch
         if CL == 0
             delete(cylinder_handle);
             delete(cylinder_end_1);
             delete(cylinder_end_2);
+
+            delete(cylinder_handle_arbor);
+            delete(cylinder_end_1_arbor);
+            delete(cylinder_end_2_arbor);
         else
             set(cylinder_handle, 'FaceColor', color);
             drawnow;

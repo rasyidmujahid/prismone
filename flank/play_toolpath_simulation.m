@@ -29,11 +29,11 @@ function [point_tool_path, flank_tool_path] = play_toolpath_simulation(T, V, ccp
     %% flank_mill_cpp
     %% bucket_id || v-idx1 || v-idx2 || x1   y1   z1 || normal i j k || tangent i j k || x2 y2 z2 || feed_direction i j k || cylinder origin || cylinder dest || CL
 
-    point_tool_path = draw_tool_path(T, X, Y, Z, bucket_index, point_mill_ccp, bucket_width, bucket_length, 'r', 'non-machinable');
-    play_tool_simulation(point_tool_path, tool_length, tool_radius);
-
     flank_tool_path = draw_tool_path(T, X, Y, Z, bucket_index, flank_mill_cpp, bucket_width, bucket_length, 'y', 'machinable');
     play_tool_simulation(flank_tool_path, tool_length, tool_radius);
+
+    % point_tool_path = draw_tool_path(T, X, Y, Z, bucket_index, point_mill_ccp, bucket_width, bucket_length, 'r', 'non-machinable');
+    % play_tool_simulation(point_tool_path, tool_length, tool_radius);
 end
 
 %% play_point_tool_simulation: play tool simulation
@@ -44,24 +44,39 @@ function play_tool_simulation(point_tool_path, tool_length, tool_radius)
     cylinder_end_1 = [];
     cylinder_end_2 = [];
 
+    cylinder_handle_arbor = [];
+    cylinder_end_1_arbor = [];
+    cylinder_end_2_arbor = [];
+
+    arbor_radius = tool_radius + 5;
+    arbor_length = tool_length;
+
     for i = 1:size(point_tool_path, 1)
         delete(cylinder_handle);
         delete(cylinder_end_1);
         delete(cylinder_end_2);
 
+        delete(cylinder_handle_arbor);
+        delete(cylinder_end_1_arbor);
+        delete(cylinder_end_2_arbor);
+
         %% point milling matrix has 6 columns, otherwise flank
         if size(point_tool_path,2) == 6
             p1 = point_tool_path(i,1:3);
             p2 = point_tool_path(i,1:3) + tool_length * point_tool_path(i,4:6) / norm(point_tool_path(i,4:6));
+            p3 = point_tool_path(i,1:3) + (tool_length + arbor_length) * point_tool_path(i,4:6) / norm(point_tool_path(i,4:6));
             color = 'y';
         else
             p1 = point_tool_path(i,7:9);
             p2 = point_tool_path(i,10:12);
+            p3 = p2 + point_tool_path(i,4:6) * arbor_length;
             if point_tool_path(i,5) > 0
-                color = 'y'; else color = 'm'; end;
+                color = 'y'; else color = 'm'; 
+            end
         end
         
         [cylinder_handle cylinder_end_1 cylinder_end_2] = Cylinder(p1, p2, tool_radius, 20, color, 1 ,0);
+        [cylinder_handle_arbor cylinder_end_1_arbor cylinder_end_2_arbor] = Cylinder(p2, p3, arbor_radius, 20, color, 1 ,0);
         % pause(0.1);
         drawnow;
     end
